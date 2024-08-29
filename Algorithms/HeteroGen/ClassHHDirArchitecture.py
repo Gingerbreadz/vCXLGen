@@ -66,36 +66,52 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
     def __init__(self, lower_level: Level, higher_level: Level, map_dict_list: List[Dict[str, List[str]]], gdbg: bool = False):
         self.gdbg = gdbg
 
+        Debug.psection(f"Lower level directory controller {lower_level.parser.filename}")
+        ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Lower level cache controller {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
+
         # Determine Access Mappings
+        #Debug.psection(f"GenAccessMessageMap for {lower_level.parser.filename}")
         #lower_level_msg_map = GenAccessMessageMap(lower_level)
+        #Debug.psection(f"GenAccessMessageMap for {higher_level.parser.filename}")
         #higher_level_msg_map = GenAccessMessageMap(higher_level)
 
-        lower_level.directory.print_arch_sub_tree_graphs()
+        #lower_level.directory.print_arch_sub_tree_graphs()
         # Generate Proxy Cache
         lower_level.directory = ProxyDirArchitecture(lower_level)
 
-        lower_level.directory.print_arch_sub_tree_graphs()
+        #lower_level.directory.print_arch_sub_tree_graphs()
 
-        Debug.psection(f"Lower level dircache controller for {lower_level.parser.filename}")
-        ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Lower level ProxyDir controller {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
         
         ProtoNetworkxBase(lower_level)
 
-        Debug.psection(f"Lower level cache controller for {lower_level.parser.filename}")
-        ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
+        #Debug.psection(f"Lower level cache controller for {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
 
         # Update the request names as required by map dict list
         #CompoundDirCacheArchitecture(lower_level, map_dict_list)
 
-        Debug.psection(f"Lower level cache controller for {lower_level.parser.filename}")
-        ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
+        #Debug.psection(f"Lower level dircache controller for {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
 
-        Debug.psection(f"Lower level dircache controller for {lower_level.parser.filename}")
-        ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Lower level dircache controller for {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
+
+        #Debug.psection(f"Higher level initial directory controller {higher_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(higher_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Higher level initial cache controller {higher_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(higher_level.cache.get_architecture_transitions()))
 
         # Run ProtoGen for the lower and the higher level
         ProtoNetworkxBase(higher_level)
 
+        #Debug.psection(f"Higher level ProtoGen directory controller {higher_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(higher_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Higher level ProtoGen cache controller {higher_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(higher_level.cache.get_architecture_transitions()))
 
 
 
@@ -108,6 +124,12 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
 
         compound_archs.append(CompoundDirCacheArchitecture(higher_level))
         self.arch_translation_table_dict[compound_archs[1]] = map_dict_list[1]
+
+        #Debug.psection(f"CompoundDirCacheArchitecture for {compound_archs[0].level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(compound_archs[0].get_architecture_transitions()))
+
+        #Debug.psection(f"CompoundDirCacheArchitecture for {compound_archs[1].level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(compound_archs[1].get_architecture_transitions()))
 
         ArchTupleStateOrdering.__init__(self, tuple(compound_archs))
 
@@ -185,6 +207,7 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         proxy_dir_arch: CompoundDirCacheArchitecture = self.get_arch_by_state(proxy_dir_state)
         for request_tree in proxy_dir_arch.state_sub_tree_dict[proxy_dir_state]:
             tree_guard = self.get_transitions_by_start_state(request_tree, proxy_dir_state)[0].guard
+            Debug.ptext(self.get_transitions_by_start_state(request_tree, proxy_dir_state)[0].print_in_out_msg())
 
             # Events are local accesses and do not communicate across hierarchies
             if isinstance(tree_guard, Event):
