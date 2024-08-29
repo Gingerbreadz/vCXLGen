@@ -242,7 +242,12 @@ class CompoundDirCacheArchitecture(FlatArchitecture, GenAccessMessageMap):
 
         # The architecture is
     def get_arch_list(self):
-        return [self, self.cache, self.directory]
+        # TODO Murphi backend breaks with this; but is this change alright?
+        #return [self, self.cache, self.directory]
+        if isinstance(self.directory, ProxyDirArchitecture):
+            return [self, self.directory]
+        else:
+            return [self, self.cache]
 
     def merge_machine_definitions(self):
         # Update the machine definition of the proxy machine
