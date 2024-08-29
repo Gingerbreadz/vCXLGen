@@ -35,10 +35,10 @@ from Debug.Monitor.ClassDebug import Debug
 
 
 # Ordered reply forwarding communication pattern protocols
-class RCCOxMSI_HH(RunHH, Debug):
+class MESIxMSI_HH(RunHH, Debug):
 
-    translation_table_first = {'load': ['acquire'], 'store': ['release']}                                       # RCC
-    translation_table_second = {'load': ['load'], 'store': ['store'], 'acquire': ['load'], 'release': ['store']}  # MSI
+    translation_table_first = {'load': ['load'], 'store': ['store']} # MESI
+    translation_table_second = {'load': ['load'], 'store': ['store']} # MSI
 
     def __init__(self):
         RunHH.__init__(self)
@@ -50,11 +50,8 @@ class RCCOxMSI_HH(RunHH, Debug):
 
     def run_protocol_tests(self):
         path = OrderedReplyForwardingProtocols().get_cur_protocol_path()
-        #protocol_1_name: str = "RCCOHetero.pcc"
-        protocol_1_name: str = "RCCOHetero.pcc"
-        #protocol_2_name: str = "MI.pcc"
-        protocol_2_name: str = "MESI.pcc"
-        #protocol_2_name: str = "MSI.pcc"
+        protocol_1_name: str = "MESI.pcc"
+        protocol_2_name: str = "MSI.pcc"
         self.run_test(protocol_1_name, protocol_2_name, path,
                       [self.translation_table_first, self.translation_table_second],
                       self.sc_litmus_test_gen.litmus_test_list, self.rc_litmus_test_gen.litmus_test_list)

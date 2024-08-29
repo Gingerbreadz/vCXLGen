@@ -66,39 +66,55 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
     def __init__(self, lower_level: Level, higher_level: Level, map_dict_list: List[Dict[str, List[str]]], gdbg: bool = False):
         self.gdbg = gdbg
 
+        Debug.psection(f"Lower level directory controller {lower_level.parser.filename}")
+        ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Lower level cache controller {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
+
         # Determine Access Mappings
+        #Debug.psection(f"GenAccessMessageMap for {lower_level.parser.filename}")
         #lower_level_msg_map = GenAccessMessageMap(lower_level)
+        #Debug.psection(f"GenAccessMessageMap for {higher_level.parser.filename}")
         #higher_level_msg_map = GenAccessMessageMap(higher_level)
 
-        lower_level.directory.print_arch_sub_tree_graphs()
+        #lower_level.directory.print_arch_sub_tree_graphs()
         # Generate Proxy Cache
         lower_level.directory = ProxyDirArchitecture(lower_level)
 
-        lower_level.directory.print_arch_sub_tree_graphs()
+        #lower_level.directory.print_arch_sub_tree_graphs()
 
-        Debug.psection(f"Lower level dircache controller for {lower_level.parser.filename}")
-        ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Lower level ProxyDir controller {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
         
         ProtoNetworkxBase(lower_level)
 
-        Debug.psection(f"Lower level cache controller for {lower_level.parser.filename}")
-        ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
+        #Debug.psection(f"Lower level cache controller for {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
 
         # Update the request names as required by map dict list
         #CompoundDirCacheArchitecture(lower_level, map_dict_list)
+        #CompoundDirCacheArchitecture(lower_level)
 
-        Debug.psection(f"Lower level cache controller for {lower_level.parser.filename}")
-        ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
+        #Debug.psection(f"Lower level dircache controller for {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
 
-        Debug.psection(f"Lower level dircache controller for {lower_level.parser.filename}")
-        ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Lower level dircache controller for {lower_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(lower_level.directory.get_architecture_transitions()))
+
+        #Debug.psection(f"Higher level initial directory controller {higher_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(higher_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Higher level initial cache controller {higher_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(higher_level.cache.get_architecture_transitions()))
 
         # Run ProtoGen for the lower and the higher level
         ProtoNetworkxBase(higher_level)
 
+        #Debug.psection(f"Higher level ProtoGen directory controller {higher_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(higher_level.directory.get_architecture_transitions()))
+        #Debug.psection(f"Higher level ProtoGen cache controller {higher_level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(higher_level.cache.get_architecture_transitions()))
 
-
-
+        # HeteroGen algorithm
 
         compound_archs: List[CompoundDirCacheArchitecture] = []
         self.arch_translation_table_dict = {}
@@ -108,6 +124,12 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
 
         compound_archs.append(CompoundDirCacheArchitecture(higher_level))
         self.arch_translation_table_dict[compound_archs[1]] = map_dict_list[1]
+
+        #Debug.psection(f"CompoundDirCacheArchitecture for {compound_archs[0].level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(compound_archs[0].get_architecture_transitions()))
+
+        #Debug.psection(f"CompoundDirCacheArchitecture for {compound_archs[1].level.parser.filename}")
+        #ProtoCCTablePrinter().ptransitiontable(list(compound_archs[1].get_architecture_transitions()))
 
         ArchTupleStateOrdering.__init__(self, tuple(compound_archs))
 
@@ -185,6 +207,7 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         proxy_dir_arch: CompoundDirCacheArchitecture = self.get_arch_by_state(proxy_dir_state)
         for request_tree in proxy_dir_arch.state_sub_tree_dict[proxy_dir_state]:
             tree_guard = self.get_transitions_by_start_state(request_tree, proxy_dir_state)[0].guard
+            Debug.ptext(self.get_transitions_by_start_state(request_tree, proxy_dir_state)[0].print_in_out_msg())
 
             # Events are local accesses and do not communicate across hierarchies
             if isinstance(tree_guard, Event):
@@ -196,6 +219,15 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
             if isinstance(tree_guard, Message):
                 tree_guard = tree_guard.base_msg
 
+            # TODO PutE/PutM -> should be remote_accesses as well
+            #   _Ideally, L1 PutE/PutM would stage data in L2-CC; without triggering eviction from L2-CC
+            #   _Only correct if L2-CC has its own eviction events
+            #     -> Eviction from L2-CC means forcefully evicting in L1 before, by simulating store accesses to L1 dir
+            #     -> If compound state denotes not-present in L1, L2-CC can evict immediately
+            #     -> Overall, Mechanism should be identical to L2-CC receiving L2_Inv or L2_FwdGet{S,M}
+            # TODO GetS->FwdGet_S is local, is that right?
+            #     GetS with store access - could be because MSI has no hidden access for S, check this with MESIxMESI.
+            #   GetS_load->Fwd_GetS/Fwd_GetM are remote, is that right? (depends on current dir_state - E)
             if proxy_dir_state in proxy_dir_arch.dir_state_req_base_message_access_map and \
                 tree_guard in proxy_dir_arch.dir_state_req_base_message_access_map[proxy_dir_state]:
                 remote_access_dir_graph_dict[request_tree] = \

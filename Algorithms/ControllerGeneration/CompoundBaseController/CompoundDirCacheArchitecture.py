@@ -69,11 +69,37 @@ class CompoundDirCacheArchitecture(FlatArchitecture, GenAccessMessageMap):
             new_transitions = self.gen_new_directory_req_transitions()
         else:
             new_transitions = self.gen_new_directory_req_transitions()
+            # Cheap trick, but works
+            self.dir_state_req_base_message_access_map = self.cache_state_fwd_message_access_map
+            # Union gives same result
+            #self.dir_state_req_base_message_access_map.update(self.cache_state_fwd_message_access_map)
+            # TODO ChangeThis: cleaner solution is to keep all mappings for dir/cache req to access
+            #   Would work similarly for both lower & higher level
 
         #new_dif = FlatArchitecture(arch_level.directory, gdbg)
         #new_dif.copy_flat_architecture(self.directory)
         #if new_transitions:
         #    new_dif.update_base_fsm(self.directory.init_state, self.directory.stable_states, list(new_transitions))
+
+        if isinstance(arch_level.directory, ProxyDirArchitecture):
+            FlatArchitecture.__init__(self, self.directory, gdbg)
+            FlatArchitecture.copy_flat_architecture(self, self.directory)
+            if new_transitions:
+                self.update_base_fsm(self.directory.init_state, self.directory.stable_states, list(new_transitions))
+        else:
+            FlatArchitecture.__init__(self, self.cache, gdbg)
+            FlatArchitecture.copy_flat_architecture(self, self.cache)
+        #    TODO This nuked the state_sub_tree_dict of the cache, do we need it?
+        #      It seems cache transitions are already well-formed, so perhaps not
+        #      Is it useful to update directory fsm with renamed transitions in the higher-level? Check this.
+        #    if new_transitions:
+        #        self.update_base_fsm(self.cache.init_state, self.cache.stable_states, list(new_transitions))
+
+        # LL CompoundDirCacheArch is a Dir, HL CompoundDirCacheArch is a Cache
+        if isinstance(arch_level.directory, ProxyDirArchitecture):
+            arch_level.directory = self
+        else:
+            arch_level.cache = self
 
     def __str__(self):
         return str(self.arch_name)
@@ -164,7 +190,13 @@ class CompoundDirCacheArchitecture(FlatArchitecture, GenAccessMessageMap):
 
                         if req_mutation or fwd_mutation:
                             self.directory.add_transition_to_graph(transition_tree, mod_trans)
-                            #new_transitions.append(mod_trans)
+                            # TODO: Why was this disabled?
+                            #   Looks like updated transitions are already merged above
+                            #   Do we still need this to be updated,
+                            #     for the function to return all transitions, including the new ones?
+                            #   Check This: important bc the return value here is used later
+                            #     by outer context to generate the updated dir fsm
+                            new_transitions.append(mod_trans)
 
                     TreeBaseNetworkx.print_tree_graph(transition_tree)                
 
