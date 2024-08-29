@@ -190,7 +190,13 @@ class CompoundDirCacheArchitecture(FlatArchitecture, GenAccessMessageMap):
 
                         if req_mutation or fwd_mutation:
                             self.directory.add_transition_to_graph(transition_tree, mod_trans)
-                            #new_transitions.append(mod_trans)
+                            # TODO: Why was this disabled?
+                            #   Looks like updated transitions are already merged above
+                            #   Do we still need this to be updated,
+                            #     for the function to return all transitions, including the new ones?
+                            #   Check This: important bc the return value here is used later
+                            #     by outer context to generate the updated dir fsm
+                            new_transitions.append(mod_trans)
 
                     TreeBaseNetworkx.print_tree_graph(transition_tree)                
 
