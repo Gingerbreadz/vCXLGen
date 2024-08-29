@@ -89,6 +89,7 @@ class GenAccessMessageMap(Debug):
         # HieraGen Data Types
         # Maps request received at directory to new forwarded request converying access type
         self.remote_cache_state_new_fwd_map: Dict[State_v2, Dict[BaseMessage, BaseMessage]] ={} 
+        self.cache_state_fwd_message_access_map: Dict[State_v2, Dict[BaseMessage, BaseAccess.Access]] = {}
         self.dir_state_req_to_new_fwd_msg_map: Dict[State_v2, Dict[BaseMessage, BaseMessage]] ={}
         self.dir_state_fwd_to_new_fwd_msg_map: Dict[State_v2, Dict[BaseMessage, BaseMessage]] ={}
 
@@ -105,6 +106,7 @@ class GenAccessMessageMap(Debug):
 
         Debug.psection("HieraGen Mappings")
         self.Print_Nested_Dict(["CC_State", "NFWD_Message", "FWD_Message"], self.remote_cache_state_new_fwd_map)
+        self.Print_Nested_Dict(["CC_State", "NFWD_Message", "Access"], self.cache_state_fwd_message_access_map)
         self.Print_Nested_Dict(["DIR_State", "REQ_Message", "NFWD_Message"], self.dir_state_req_to_new_fwd_msg_map)
         self.Print_Nested_Dict(["DIR_State", "NFWD_Message", "FWD_Message"], self.dir_state_fwd_to_new_fwd_msg_map)
 
@@ -425,6 +427,7 @@ class GenAccessMessageMap(Debug):
 
                 if cache_state not in self.remote_cache_state_new_fwd_map:
                     self.remote_cache_state_new_fwd_map[cache_state]={}
+                    self.cache_state_fwd_message_access_map[cache_state] = {}
                 if dir_state not in self.dir_state_req_to_new_fwd_msg_map:
                     self.dir_state_req_to_new_fwd_msg_map[dir_state]={}
                     self.dir_state_fwd_to_new_fwd_msg_map[dir_state]={}
@@ -432,6 +435,7 @@ class GenAccessMessageMap(Debug):
                 self.remote_cache_state_new_fwd_map[cache_state][new_fwd_msg] = msg_match
                 self.dir_state_req_to_new_fwd_msg_map[dir_state][new_req_msg] = new_fwd_msg
                 self.dir_state_fwd_to_new_fwd_msg_map[dir_state][new_fwd_msg] = msg_match
+                self.cache_state_fwd_message_access_map[cache_state][new_fwd_msg] = access
 
     def Print_Dict(self, header, map_dict):
         data_list = [[str(k), str(v)] for k, v in map_dict.items()]
