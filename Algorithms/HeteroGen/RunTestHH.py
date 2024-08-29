@@ -77,8 +77,6 @@ class RunHH(Debug):
         level_2 = Level(ProtoParser(protocol_2, filename_2, False, True), "L2")
 
         # Generate higher level inter cluster protocol
-        
-
 
         # For each cluster generate the connecting controllers
 
@@ -87,27 +85,40 @@ class RunHH(Debug):
         # The new DirProxyCache replaces to original directory architecture in level_1
 
         # Generate HeteroGen
-        heterogen_ctrl = HHDirArchitecture(level_1, level_2, access_map_table, False)
+        hhgen_ctrl = HHDirArchitecture(level_1, level_2, access_map_table, False)
 
         # Run ProtoGen for each level
-        
         #ProtoNetworkxBase(level_2)
 
         cache_machine_1 = Machine(level_1.cache)
+        directory_machine_2 = Machine(level_2.directory)
         cache_machine_2 = Machine(level_2.cache)
+        hhcache_machine = Machine(level_1.directory)
+        #hhcache_machine = Machine(level_2.cache)
+        #cache_machine_2 = Machine(hhgen_ctrl.arch_tuple[1])
 
-        directory_machine = Machine(heterogen_ctrl)
+        cluster_1 = Cluster(
+            tuple([cache_machine_1, cache_machine_1]) + tuple([hhcache_machine]),
+            'C1', False)
+        cluster_2 = Cluster(
+            tuple([cache_machine_2, ]) + tuple([hhcache_machine, directory_machine_2]),
+            'C2', False)
+
+        #cluster_1.update_machine_archs(directory_machine_1.get_arch_list()[0], hhgen_ctrl)
+        #cluster_2.update_machine_archs(hhcache_machine_2.get_arch_list()[0], hhgen_ctrl)
+
+        GenerateMurphi([cluster_1, cluster_2], 'HH_DeadlockFreedom', None)
 
         #RunMurphiCheck([cluster_1], sys_name, None, 4000, 'DeadlockFreedom')
         #RunSLICCModular(cluster_1, sys_name)
 
-        self.verify_flat_protocols(cache_machine_1, cache_machine_2, directory_machine, self.sys_name, 4)
+        #self.verify_flat_protocols(cache_machine_1, cache_machine_2, directory_machine, self.sys_name, 4)
 
-        cache_thread_dict: Dict[Machine, List[LitmusTest]] = {cache_machine_1: litmus_test_list_1,
-                                                              cache_machine_2: litmus_test_list_2}
+        #cache_thread_dict: Dict[Machine, List[LitmusTest]] = {cache_machine_1: litmus_test_list_1,
+        #                                                      cache_machine_2: litmus_test_list_2}
 
-        if litmus_test_list_1 and litmus_test_list_2:
-            self.run_litmus_test(self.sys_name, cache_thread_dict, directory_machine)
+        #if litmus_test_list_1 and litmus_test_list_2:
+        #    self.run_litmus_test(self.sys_name, cache_thread_dict, directory_machine)
 
     def verify_flat_protocols(self,
                               cache_machine_1: Machine, cache_machine_2: Machine, directory_machine: Machine,

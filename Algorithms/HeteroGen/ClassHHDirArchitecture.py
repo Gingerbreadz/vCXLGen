@@ -150,6 +150,7 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         FlatArchitecture.__init__(self, compound_archs[0], self.gdbg)
         self.update_base_fsm(fsm_init_state, fsm_stable_states, set(fsm_transitions))
         lower_level.directory = self
+        #higher_level.cache = self
 
         heterogen_arch = self.merge_base_architectures_and_machines()
         self.update_remote_archs(heterogen_arch, [lower_level, higher_level])
@@ -430,8 +431,12 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
     @staticmethod
     def update_directory_names(new_arch: CompoundDirCacheArchitecture, levels: List[Level]):
         for level in levels:
+            # TODO should ensure that L2-cache still sends L2 msg to L2-dir, not L1-dir (bridge)
             # Get the current level directory id
             level_dir_id = str(level.directory)
+            # TODO should we let bridge be L1-dir or L2-cache?
+            # TODO fixthis: introduce duplicate transitions in L2-dir when bridge is L2-cache
+            #level_dir_id = str(level.cache)
             for arch in level.get_architectures():
                 # Update the directory name in all architectures
                 arch.replace_transitions_objects(level_dir_id, str(new_arch))
