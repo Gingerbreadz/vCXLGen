@@ -67,8 +67,8 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         self.gdbg = gdbg
 
         # Determine Access Mappings
-        lower_level_msg_map = GenAccessMessageMap(lower_level)
-        higher_level_msg_map = GenAccessMessageMap(higher_level)
+        #lower_level_msg_map = GenAccessMessageMap(lower_level)
+        #higher_level_msg_map = GenAccessMessageMap(higher_level)
 
         lower_level.directory.print_arch_sub_tree_graphs()
         # Generate Proxy Cache
@@ -85,7 +85,7 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
 
         # Update the request names as required by map dict list
-        CompoundDirCacheArchitecture(lower_level, map_dict_list)
+        #CompoundDirCacheArchitecture(lower_level, map_dict_list)
 
         Debug.psection(f"Lower level cache controller for {lower_level.parser.filename}")
         ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
