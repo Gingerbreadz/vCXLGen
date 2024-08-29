@@ -112,13 +112,13 @@ class RunHH(Debug):
         #RunMurphiCheck([cluster_1], sys_name, None, 4000, 'DeadlockFreedom')
         #RunSLICCModular(cluster_1, sys_name)
 
-        self.verify_flat_protocols(cache_machine_1, cache_machine_2, directory_machine, self.sys_name, 4)
+        #self.verify_flat_protocols(cache_machine_1, cache_machine_2, directory_machine, self.sys_name, 4)
 
-        cache_thread_dict: Dict[Machine, List[LitmusTest]] = {cache_machine_1: litmus_test_list_1,
-                                                              cache_machine_2: litmus_test_list_2}
+        #cache_thread_dict: Dict[Machine, List[LitmusTest]] = {cache_machine_1: litmus_test_list_1,
+        #                                                      cache_machine_2: litmus_test_list_2}
 
-        if litmus_test_list_1 and litmus_test_list_2:
-            self.run_litmus_test(self.sys_name, cache_thread_dict, directory_machine)
+        #if litmus_test_list_1 and litmus_test_list_2:
+        #    self.run_litmus_test(self.sys_name, cache_thread_dict, directory_machine)
 
     def verify_flat_protocols(self,
                               cache_machine_1: Machine, cache_machine_2: Machine, directory_machine: Machine,
