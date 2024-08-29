@@ -67,8 +67,8 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         self.gdbg = gdbg
 
         # Determine Access Mappings
-        lower_level_msg_map = GenAccessMessageMap(lower_level)
-        higher_level_msg_map = GenAccessMessageMap(higher_level)
+        #lower_level_msg_map = GenAccessMessageMap(lower_level)
+        #higher_level_msg_map = GenAccessMessageMap(higher_level)
 
         lower_level.directory.print_arch_sub_tree_graphs()
         # Generate Proxy Cache
@@ -85,7 +85,7 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
 
         # Update the request names as required by map dict list
-        CompoundDirCacheArchitecture(lower_level, map_dict_list)
+        #CompoundDirCacheArchitecture(lower_level, map_dict_list)
 
         Debug.psection(f"Lower level cache controller for {lower_level.parser.filename}")
         ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
@@ -130,19 +130,17 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         lower_level.directory = self
 
         heterogen_arch = self.merge_base_architectures_and_machines()
-        self.update_remote_archs(heterogen_arch, [lower_level, upper_level])
+        self.update_remote_archs(heterogen_arch, [lower_level, higher_level])
 
         #allowed_states = set(fsm_stable_states) - set(mod_forbidden_state_list)
         #self.state_sub_tree_dict = self.prune_states_from_graph(self.state_sub_tree_dict,
         #                                                        allowed_states, mod_forbidden_state_list)
 
-        Debug.psection(f"Hierarchical controller for {[proto.parser.filename for proto in [lower_level, upper_level]]}")
+        Debug.psection(f"Hierarchical controller for {[proto.parser.filename for proto in [lower_level, higher_level]]}")
         ProtoCCTablePrinter().ptransitiontable(list(self.get_architecture_transitions()))
 
-
-
-        Debug.psection(f"Higher level directory controller for {upper_level.parser.filename}")
-        ProtoCCTablePrinter().ptransitiontable(list(upper_level.directory.get_architecture_transitions()))
+        Debug.psection(f"Higher level directory controller for {higher_level.parser.filename}")
+        ProtoCCTablePrinter().ptransitiontable(list(higher_level.directory.get_architecture_transitions()))
 
         if self.gdbg:
             self.dbg_tree_graph(self.gen_graph(fsm_transitions))
