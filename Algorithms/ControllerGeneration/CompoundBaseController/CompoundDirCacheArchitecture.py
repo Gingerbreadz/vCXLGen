@@ -81,6 +81,26 @@ class CompoundDirCacheArchitecture(FlatArchitecture, GenAccessMessageMap):
         #if new_transitions:
         #    new_dif.update_base_fsm(self.directory.init_state, self.directory.stable_states, list(new_transitions))
 
+        if isinstance(arch_level.directory, ProxyDirArchitecture):
+            FlatArchitecture.__init__(self, self.directory, gdbg)
+            FlatArchitecture.copy_flat_architecture(self, self.directory)
+            if new_transitions:
+                self.update_base_fsm(self.directory.init_state, self.directory.stable_states, list(new_transitions))
+        else:
+            FlatArchitecture.__init__(self, self.cache, gdbg)
+            FlatArchitecture.copy_flat_architecture(self, self.cache)
+        #    TODO This nuked the state_sub_tree_dict of the cache, do we need it?
+        #      It seems cache transitions are already well-formed, so perhaps not
+        #      Is it useful to update directory fsm with renamed transitions in the higher-level? Check this.
+        #    if new_transitions:
+        #        self.update_base_fsm(self.cache.init_state, self.cache.stable_states, list(new_transitions))
+
+        # LL CompoundDirCacheArch is a Dir, HL CompoundDirCacheArch is a Cache
+        if isinstance(arch_level.directory, ProxyDirArchitecture):
+            arch_level.directory = self
+        else:
+            arch_level.cache = self
+
     def __str__(self):
         return str(self.arch_name)
 
