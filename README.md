@@ -1,5 +1,6 @@
-# HeteroGen
-[HeteroGen Paper HPCA'22](https://github.com/Errare-humanum-est/HeteroGen/blob/4b461e10eb93145de129d942ca78a2b551eea3f7/HeteroGen%20HPCA22.pdf)
+# CXLGen
+
+CXL Gen is a cache coherence bridge generator for CXL.mem
 
 ## Hardware dependencies
 
