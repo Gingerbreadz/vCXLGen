@@ -343,6 +343,10 @@ class GenAccessMessageMap(Debug):
         
             # The actual access is a hidden access type
             orig_access = cache_dir_tuple[0].init_guard
+            # TODO do a smarter nesting of transition trees
+            #   This makes the top-level protocol effectively MI (correct)
+            #   For now, just Disable hidden_accesses (incorrect)
+            access = orig_access
             if access != orig_access:
                 if dir_state not in self.cache_state_logical_access_to_hidden_access:
                     self.cache_state_logical_access_to_hidden_access[cache_state] = {}
