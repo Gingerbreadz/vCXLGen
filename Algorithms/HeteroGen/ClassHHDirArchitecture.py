@@ -93,6 +93,7 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
 
         # Update the request names as required by map dict list
         #CompoundDirCacheArchitecture(lower_level, map_dict_list)
+        #CompoundDirCacheArchitecture(lower_level)
 
         #Debug.psection(f"Lower level dircache controller for {lower_level.parser.filename}")
         #ProtoCCTablePrinter().ptransitiontable(list(lower_level.cache.get_architecture_transitions()))
@@ -113,8 +114,7 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         #Debug.psection(f"Higher level ProtoGen cache controller {higher_level.parser.filename}")
         #ProtoCCTablePrinter().ptransitiontable(list(higher_level.cache.get_architecture_transitions()))
 
-
-
+        # HeteroGen algorithm
 
         compound_archs: List[CompoundDirCacheArchitecture] = []
         self.arch_translation_table_dict = {}
@@ -219,6 +219,15 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
             if isinstance(tree_guard, Message):
                 tree_guard = tree_guard.base_msg
 
+            # TODO PutE/PutM -> should be remote_accesses as well
+            #   _Ideally, L1 PutE/PutM would stage data in L2-CC; without triggering eviction from L2-CC
+            #   _Only correct if L2-CC has its own eviction events
+            #     -> Eviction from L2-CC means forcefully evicting in L1 before, by simulating store accesses to L1 dir
+            #     -> If compound state denotes not-present in L1, L2-CC can evict immediately
+            #     -> Overall, Mechanism should be identical to L2-CC receiving L2_Inv or L2_FwdGet{S,M}
+            # TODO GetS->FwdGet_S is local, is that right?
+            #     GetS with store access - could be because MSI has no hidden access for S, check this with MESIxMESI.
+            #   GetS_load->Fwd_GetS/Fwd_GetM are remote, is that right? (depends on current dir_state - E)
             if proxy_dir_state in proxy_dir_arch.dir_state_req_base_message_access_map and \
                 tree_guard in proxy_dir_arch.dir_state_req_base_message_access_map[proxy_dir_state]:
                 remote_access_dir_graph_dict[request_tree] = \
