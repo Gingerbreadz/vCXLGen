@@ -46,7 +46,7 @@ class CompoundDirCacheArchitecture(FlatArchitecture, GenAccessMessageMap):
 
     # NOSWALD Transition trees can be debugged using the TreeBaseNetworkx.print_tree_graph(transition_tree) function
 
-    def __init__(self, arch_level: Level, map_dict_list: List[Dict[str, List[str]]], gdbg: bool = False):
+    def __init__(self, arch_level: Level, gdbg: bool = False):
         self.cache = arch_level.cache
         self.directory = arch_level.directory
         self.level = arch_level
@@ -71,7 +71,7 @@ class CompoundDirCacheArchitecture(FlatArchitecture, GenAccessMessageMap):
             new_transitions = self.gen_new_directory_req_transitions()
 
         #new_dif = FlatArchitecture(arch_level.directory, gdbg)
-        #new_dif.copy_flat_architecture(self, self.directory)
+        #new_dif.copy_flat_architecture(self.directory)
         #if new_transitions:
         #    new_dif.update_base_fsm(self.directory.init_state, self.directory.stable_states, list(new_transitions))
 
