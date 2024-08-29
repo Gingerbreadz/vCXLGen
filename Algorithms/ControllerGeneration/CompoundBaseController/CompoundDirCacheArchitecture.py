@@ -69,6 +69,12 @@ class CompoundDirCacheArchitecture(FlatArchitecture, GenAccessMessageMap):
             new_transitions = self.gen_new_directory_req_transitions()
         else:
             new_transitions = self.gen_new_directory_req_transitions()
+            # Cheap trick, but works
+            self.dir_state_req_base_message_access_map = self.cache_state_fwd_message_access_map
+            # Union gives same result
+            #self.dir_state_req_base_message_access_map.update(self.cache_state_fwd_message_access_map)
+            # TODO ChangeThis: cleaner solution is to keep all mappings for dir/cache req to access
+            #   Would work similarly for both lower & higher level
 
         #new_dif = FlatArchitecture(arch_level.directory, gdbg)
         #new_dif.copy_flat_architecture(self.directory)
