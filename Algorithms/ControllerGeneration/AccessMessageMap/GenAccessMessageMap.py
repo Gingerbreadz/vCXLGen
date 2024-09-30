@@ -34,7 +34,7 @@ from DataObjects.States.ClassStatev2 import State_v2
 from DataObjects.ClassLevel import Level
 from DataObjects.ClassMultiDict import MultiDict
 
-from DataObjects.FlowDataTypes.ClassBaseAccess import BaseAccess
+from DataObjects.FlowDataTypes.ClassBaseAccess import BaseAccess, Evict
 from DataObjects.FlowDataTypes.ClassMessage import Message, BaseMessage
 from DataObjects.ClassTrace import Trace
 
@@ -89,12 +89,13 @@ class GenAccessMessageMap(Debug):
         # HieraGen Data Types
         # Maps request received at directory to new forwarded request converying access type
         self.remote_cache_state_new_fwd_map: Dict[State_v2, Dict[BaseMessage, BaseMessage]] ={} 
-        self.cache_state_fwd_message_access_map: Dict[State_v2, Dict[BaseMessage, BaseAccess.Access]] = {}
+        self.cache_state_fwd_message_access_map: Dict[State_v2, Dict[Union[BaseMessage, BaseAccess.Evict], BaseAccess.Access]] = {} # map evict as fwd request
         self.dir_state_req_to_new_fwd_msg_map: Dict[State_v2, Dict[BaseMessage, BaseMessage]] ={}
         self.dir_state_fwd_to_new_fwd_msg_map: Dict[State_v2, Dict[BaseMessage, BaseMessage]] ={}
 
         # Generate new REQUEST messages to resolve potential access name conflicts
         self.gen_new_req_base_messages_and_map_to_accesses()
+        self.map_cache_evict_as_fwd_msg()
 
         Debug.psection("HeteroGen Mappings")
         self.Print_Dict(["NREQ_Msg", "REQ_Msg"], self.new_req_to_original_base_message_map)
@@ -440,6 +441,13 @@ class GenAccessMessageMap(Debug):
                 self.dir_state_req_to_new_fwd_msg_map[dir_state][new_req_msg] = new_fwd_msg
                 self.dir_state_fwd_to_new_fwd_msg_map[dir_state][new_fwd_msg] = msg_match
                 self.cache_state_fwd_message_access_map[cache_state][new_fwd_msg] = access
+
+    def map_cache_evict_as_fwd_msg(self):
+        store_access: BaseAccess = self.level.cache.global_arch.base_access.access_map[self.level.cache.global_arch.base_access.k_store]
+        for stable_state in self.level.cache.stable_states:
+            for evict_transition in stable_state.evict_miss:
+                evict_guard: Evict = evict_transition.guard
+                self.cache_state_fwd_message_access_map[stable_state][evict_guard] = store_access
 
     def Print_Dict(self, header, map_dict):
         data_list = [[str(k), str(v)] for k, v in map_dict.items()]

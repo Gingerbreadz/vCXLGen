@@ -214,7 +214,11 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
             if isinstance(tree_guard, Event):
                 local_access_dir_graph_set.add(request_tree)
 
-            if not isinstance(tree_guard, (Message, BaseMessage)):
+            if not isinstance(tree_guard, (Message, BaseMessage, BaseAccess.Evict)):
+                continue
+
+            # Filter out Load/Store/Evict event if arch is lower-level dir.
+            if isinstance(tree_guard, (BaseAccess.Evict, BaseAccess.Access)) and isinstance(proxy_dir_arch, ProxyDirArchitecture):
                 continue
 
             if isinstance(tree_guard, Message):
