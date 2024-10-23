@@ -254,6 +254,9 @@ class GenPCCtoMurphi_Rev(GenDataTypes, GenMurphiAccess, Debug):
         elif (str(operation) in [str(arch) for arch in self.cluster.get_machine_architectures()]
               and not str(operation) == str(self.arch)):
             return str(operation)
+        elif (str(operation) in [str(arch) for arch in self.arch.global_arch.get_dependent_architectures()]
+              and not str(operation) == str(self.arch)):
+            return str(operation)
         else:
             return MurphiTokens.v_mach
 
