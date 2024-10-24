@@ -58,11 +58,14 @@ class GenAccessStateMachines(TemplateBase):
         self.config = config
 
         access_fsm_str_list = []
+        arch_set = set()
 
         for cluster in clusters:
             machines = set(cluster.system_tuple)
 
             for arch in sorted(set([machine.arch for machine in machines]), key=lambda x: str(x)):
+                if arch in arch_set: continue
+                else: arch_set.add(arch)
                 access_fsm_str_list.append(self.gen_state_machine_graph(cluster, arch, config))
 
         murphi_str.append("----" + __name__.replace('.', '/') + self.nl + "".join(access_fsm_str_list))
