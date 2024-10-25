@@ -71,6 +71,11 @@ class GenMurphiRevTree(GenPCCtoMurphi_Rev):
         murphi_operations = self.convert_operation_tree_to_murphi_tree(operation_tree)
         return "".join([str(murphi_operation) for murphi_operation in murphi_operations])
 
+    def gen_murphi_operation_tree(self, transitions: List[Transition_v2]) -> List[str]:
+        operation_tree = self.gen_operation_tree_from_trans(transitions)
+        murphi_operations = self.convert_operation_tree_to_murphi_tree(operation_tree)
+        return [str(murphi_operation) for murphi_operation in murphi_operations]
+
     ## Merge multiple ssp_transitions with same guard into sequential code
     #  @param self The object pointer.
     def gen_operation_tree_from_trans(self, transitions: List[Transition_v2]) -> DiGraph:
