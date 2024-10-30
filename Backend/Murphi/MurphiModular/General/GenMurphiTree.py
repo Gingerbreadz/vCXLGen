@@ -28,6 +28,9 @@
 
 from typing import List, Any
 
+from antlr3 import CommonToken
+from antlr3.tree import CommonTree
+
 from Parser.NetworkxParser.ClassProtoParserBase import ProtoParserBase
 from Parser.CopyReducedCommonTree import copy_tree
 
@@ -92,6 +95,10 @@ class GenMurphiRevTree(GenPCCtoMurphi_Rev):
             cur_node = guard
 
             return_flag = True
+
+            # Murphi models optimization:
+            #   -> reset machine variables after entering a CONDITION block
+            transition.operations = self.add_nodes_cond_var_reset(transition.operations)
 
             for op_ind in range(1, len(transition.operations)):
 
@@ -205,3 +212,34 @@ class GenMurphiRevTree(GenPCCtoMurphi_Rev):
 
     def gen_return(self) -> str:
         return MurphiTokens.k_return + self.end
+
+    # Add, in Operation Tree of a Transition, new nodes that reset machine variables, after entering a conditional block
+    # ---
+    # For all _COND nodes in OperationTree of Transition:
+    #   Add new reset nodes for operands (after _COND node), when operands are machine variables
+    def add_nodes_cond_var_reset(self, operation_list: List[CommonTree]) -> List[CommonTree]:
+        new_operation_list = []
+        for operation in operation_list:
+            new_operation_list.append(operation)
+            if str(operation) == ProtoParserBase.k_cond:
+                for cond_op in operation.getChildren():
+                    if str(cond_op) in self.arch.machine.variables:
+                        variable = str(cond_op)
+                        if variable in self.arch.machine.variables_init_val:
+                            new_operation_list.append(self.init_val_node_for_var(variable))
+                        else:
+                            new_operation_list.append(self.undef_node_for_var(variable))
+        return new_operation_list
+
+    def init_val_node_for_var(self, variable: str) -> CommonTree:
+        var_init_val = str(list(self.arch.machine.variables_init_val[variable].getChildren())[-1])
+        node = CommonTree(CommonToken(text=ProtoParserBase.k_assign))
+        node.addChild(CommonTree(CommonToken(text=variable)))
+        node.addChild(CommonTree(CommonToken(text="=")))
+        node.addChild(CommonTree(CommonToken(text=var_init_val)))
+        return node
+
+    def undef_node_for_var(self, variable: str) -> CommonTree:
+        node = CommonTree(CommonToken(text=ProtoParserBase.k_undef))
+        node.addChild(CommonTree(CommonToken(text=variable)))
+        return node
