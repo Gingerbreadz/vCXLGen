@@ -133,7 +133,7 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
 
         ArchTupleStateOrdering.__init__(self, tuple(compound_archs))
 
-        NestTreeNetworkx.__init__(self, compound_archs[0])
+        NestTreeNetworkx.__init__(self, compound_archs[0], tuple(compound_archs))
 
         # Tracks the new states
         self.graph_state_to_heterogen_state_map: Dict[Tuple[Tuple[State_v2], str], CompoundState] = {}
@@ -565,3 +565,8 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
         for compound_arch in self.arch_tuple:
             arch_list += compound_arch.get_arch_list()
         return [self] + arch_list
+
+    def get_arch_from_message(self, msg: BaseMessage) -> FlatArchitecture:
+        for arch in self.arch_tuple:
+            if str(msg) in arch.global_arch.network.base_message_dict:
+                return arch
