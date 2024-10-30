@@ -66,10 +66,9 @@ class NestedDeferMessage(BaseDeferMessage):
         for transition in transitions:
             if transition.guard == cur_guard:
                 transition.guard = new_guard
-                proxy_key = self.__proxy_key
                 if isinstance(new_guard, BaseMessage):
                     proxy_key = self.__proxy_key_from_message(new_guard)
-                transition.operations.append(self.push_defer_message(proxy_key, str(new_guard)))
+                    transition.operations.append(self.push_defer_message(proxy_key, str(new_guard)))
 
     def pop_defer_guard_proxy_transitions(self, transitions: List[Transition_v2],
                                           cur_guard: Union[BaseMessage, Message],
