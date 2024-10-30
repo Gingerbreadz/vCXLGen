@@ -372,6 +372,8 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
             if not remote_proxy_processor:
                 nest_graph = self.prune_event_execution(nest_graph)
 
+            self.prune_evict_proxy_msg_assign(nest_graph)
+
             # Update the transition states by new compound states whose base states are sorted according to the
             # architecture tuple
             hetero_transitions += self.det_sort_state_graph(nest_graph)
@@ -459,6 +461,14 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
             self.graph_state_to_heterogen_state_map[state_id_tuple] = CompoundState(sorted_state_tuple,
                                                                                     compound_state.prefix)
         return self.graph_state_to_heterogen_state_map[state_id_tuple]
+
+    def prune_evict_proxy_msg_assign(self, remote_proxy_graph: MultiDiGraph):
+        for transition in self.get_transitions_from_graph(remote_proxy_graph):
+            for operation in transition.operations:
+                if str(operation) in ProtoParserBase.k_assign:
+                    tokens = operation.getChildren()
+                    if len(tokens) == 3 and [str(token) for token in tokens] == ["proxy_msg","=","evict"]:
+                        transition.operations.remove(operation)
 
     def prune_event_execution(self, remote_proxy_graph: MultiDiGraph):
         root_node = self.get_root_node_by_attribute(remote_proxy_graph)
