@@ -80,4 +80,8 @@ class NestedDeferMessage(BaseDeferMessage):
             proxy_key = self.__proxy_key
             if isinstance(cur_guard, BaseMessage):
                 proxy_key = self.__proxy_key_from_message(cur_guard)
-            transition.rename_operation(str(cur_guard), proxy_key)
+            mutated = transition.rename_operation(str(cur_guard), proxy_key)
+            if mutated:
+                undef_proxy_msg_node = CommonTree(CommonToken(text=ProtoParserBase.k_undef))
+                undef_proxy_msg_node.addChild(CommonTree(CommonToken(text=proxy_key)))
+                transition.operations.append(undef_proxy_msg_node)
