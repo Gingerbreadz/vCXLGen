@@ -229,6 +229,7 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
             #   _Only correct if L2-CC has its own eviction events
             #     -> Eviction from L2-CC means forcefully evicting in L1 before, by simulating store accesses to L1 dir
             #     -> If compound state denotes not-present in L1, L2-CC can evict immediately
+            #         -> Still, simulate store to proxy-dir; would return immediately bc not-present in L1
             #     -> Overall, Mechanism should be identical to L2-CC receiving L2_Inv or L2_FwdGet{S,M}
             # TODO GetS->FwdGet_S is local, is that right?
             #     GetS with store access - could be because MSI has no hidden access for S, check this with MESIxMESI.
