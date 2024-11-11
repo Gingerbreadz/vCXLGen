@@ -33,6 +33,7 @@ from typing import List, Union, Tuple
 
 from time import sleep
 
+from Backend.Murphi.BaseConfig import BaseConfig
 from Backend.Murphi.ModularMurphi import ModularMurphi
 from Debug.Monitor.ClassDebug import Debug
 from Debug.Monitor.MakeDir import make_dir
@@ -58,6 +59,9 @@ def _run_murphi_modular_base(clusters: List[Cluster],
 
     # Generate Murphi file description
     murphi_desc = ModularMurphi(clusters, filename, False, litmus_test)
+
+    # TODO: find better way to put this
+    ModularMurphi(clusters, "RMR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()))
 
     return murphi_desc, def_path
 

@@ -33,22 +33,23 @@ from Backend.Common.TemplateHandler.TemplateBase import TemplateBase
 from Backend.Murphi.BaseConfig import BaseConfig
 
 from Debug.Monitor.ClassDebug import Debug
+from DataObjects.ClassCluster import Cluster
 
 
 class GenNetwork(TemplateBase, Debug):
 
     c_fifo_max = 0
 
-    def __init__(self, murphi_str: List[str], config: BaseConfig):
+    def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateBase.__init__(self)
         Debug.__init__(self)
 
         fifo_str = "----" + __name__.replace('.','/') + self.nl
-        fifo_str += self.add_tabs(self._gen_network_objects(config), 1) + self.nl
+        fifo_str += self.add_tabs(self._gen_network_objects(clusters, config), 1) + self.nl
 
         murphi_str.append(fifo_str)
 
-    def _gen_network_objects(self, config: BaseConfig):
+    def _gen_network_objects(self, clusters: List[Cluster], config: BaseConfig):
         objstr = ""
 
         point_to_point_ext_str = ""
@@ -56,14 +57,25 @@ class GenNetwork(TemplateBase, Debug):
             point_to_point_ext_str = "] of array[" + MurphiTokens.k_machines
 
         # Ordered Interconnect
-        objstr += (MurphiTokens.k_net + MurphiTokens.k_ordered + ": array[" + MurphiTokens.k_machines
-                   + point_to_point_ext_str + "] of array[0.." + MurphiTokens.c_ordered_const + "-1] of "
-                   + MurphiTokens.k_message + self.end)
+        if not config.use_per_machine_queues:
+            objstr += (MurphiTokens.k_net + MurphiTokens.k_ordered + ": array[" + MurphiTokens.k_machines
+                    + point_to_point_ext_str + "] of array[0.." + MurphiTokens.c_ordered_const + "-1] of "
+                    + MurphiTokens.k_message + self.end)
 
-        objstr += (MurphiTokens.k_net + MurphiTokens.k_ordered_cnt + ": array[" + MurphiTokens.k_machines
-                   + point_to_point_ext_str + "] of 0.." + MurphiTokens.c_ordered_const + self.end)
+            objstr += (MurphiTokens.k_net + MurphiTokens.k_ordered_cnt + ": array[" + MurphiTokens.k_machines
+                    + point_to_point_ext_str + "] of 0.." + MurphiTokens.c_ordered_const + self.end)
 
-        objstr += (MurphiTokens.k_net + MurphiTokens.k_unordered + ": array[" + MurphiTokens.k_machines
-                   + "] of multiset[" + MurphiTokens.c_unordered_const + "] of " + MurphiTokens.k_message + self.end)
+            objstr += (MurphiTokens.k_net + MurphiTokens.k_unordered + ": array[" + MurphiTokens.k_machines
+                    + "] of multiset[" + MurphiTokens.c_unordered_const + "] of " + MurphiTokens.k_message + self.end)
+        else:
+
+            archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
+            for arch in archs:
+                objstr += (MurphiTokens.k_net + arch + ": array[" + MurphiTokens.k_obj_set + arch
+                        + point_to_point_ext_str + "] of array[0.." + MurphiTokens.c_ordered_const + "-1] of "
+                        + MurphiTokens.k_message + self.end)
+                
+                objstr += (MurphiTokens.k_net + arch + "_cnt" + ": array[" + MurphiTokens.k_obj_set + arch
+                        + point_to_point_ext_str + "] of 0.." + MurphiTokens.c_ordered_const + self.end)
 
         return objstr

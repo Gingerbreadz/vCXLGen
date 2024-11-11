@@ -47,6 +47,8 @@ class GenVars(TemplateHandler):
 
         var_str = "--" + __name__.replace('.','/') + self.nl
 
+        if config.substitute_unions:
+            var_str += self.gen_scalar_maps(clusters)
         var_str += self.gen_network(clusters, config)
         var_str += self.gen_access(config)
         var_str += self.gen_machine_instances(clusters)
@@ -55,22 +57,54 @@ class GenVars(TemplateHandler):
 
         murphi_str.append(self.add_tabs(self.var_type + self.nl + self.add_tabs(var_str, 1) + self.nl, 1))
 
+    def gen_scalar_maps(self, clusters: List[Cluster]) -> str:
+        sm_str = ""
+        for cluster in clusters:
+            for arch in cluster.get_machine_architectures():
+                if cluster.get_machine_architecture_count(arch) > 1:
+                    sm_str += self.tab + "i_" + MurphiTokens.k_sm + str(arch) + ": " + MurphiTokens.k_sm + str(arch) + self.end
+        return sm_str + self.nl
+
     def gen_network(self, clusters: List[Cluster], config: BaseConfig) -> str:
         network_str = ""
         fifo_str = ""
 
-        for cluster in clusters:
-            for global_arch in cluster.get_global_architectures():
-                for ordered_network in global_arch.network.ordered_networks:
-                    network_str += self.gen_ordered_network(global_arch.network.ordered_networks[ordered_network])
-                    if config.enable_fifo:
-                        fifo_str += self.gen_fifo(global_arch.network.ordered_networks[ordered_network])
-                for unordered_network in global_arch.network.unordered_networks:
-                    network_str += self.gen_unordered_network(global_arch.network.unordered_networks[
-                                                                  unordered_network])
-                    if config.enable_fifo:
-                        fifo_str += self.gen_fifo(global_arch.network.unordered_networks[unordered_network])
+        if not config.use_per_machine_queues:
+            for cluster in clusters:
+                for global_arch in cluster.get_global_architectures():
+                    for ordered_network in global_arch.network.ordered_networks:
+                        network_str += self.gen_ordered_network(global_arch.network.ordered_networks[ordered_network])
+                        if config.enable_fifo:
+                            fifo_str += self.gen_fifo(global_arch.network.ordered_networks[ordered_network])
+                    for unordered_network in global_arch.network.unordered_networks:
+                        network_str += self.gen_unordered_network(global_arch.network.unordered_networks[
+                                                                    unordered_network])
+                        if config.enable_fifo:
+                            fifo_str += self.gen_fifo(global_arch.network.unordered_networks[unordered_network])
+        else:
+            assert not config.enable_fifo # Not handled currently
+            archs = set() 
+            for cluster in clusters:
+                nets = set()
+                for global_arch in cluster.get_global_architectures():
+                    for net in global_arch.network.ordered_networks:
+                        nets.add(net)
+                for arch in cluster.get_machine_architectures():
+                    if str(arch) in archs:
+                        continue
+                    archs.add(str(arch))
+                    for net in nets:
+                        network_str += self.gen_named_ordered_network(str(arch), net)
+                    network_str += self.nl
+
+
         return network_str + self.nl + fifo_str + self.nl
+
+    def gen_named_ordered_network(self, name: str, ordered_network: Channel) -> str:
+        o_net = self.tab + str(ordered_network) + "_" + name + ": " + MurphiTokens.k_net + name + self.end
+        o_net += (self.tab + MurphiTokens.k_vector_cnt + str(ordered_network) + "_" + name + ": " +
+                  MurphiTokens.k_net + name + "_cnt" + self.end)
+        return o_net
 
     def gen_ordered_network(self, ordered_network: Channel) -> str:
         o_net = self.tab + str(ordered_network) + ": " + MurphiTokens.k_net + MurphiTokens.k_ordered + self.end

@@ -29,6 +29,7 @@
 from typing import List, Tuple, Dict, Union
 from collections import OrderedDict
 
+from Backend.Murphi.MachineConfig import MachineConfig
 from DataObjects.ClassCluster import Cluster
 from DataObjects.ClassMachine import Machine
 
@@ -70,7 +71,22 @@ class BaseConfig(Debug):
 
     c_fifo_max: int = 0         # Buffer size cnt+1
 
-    def __init__(self,  clusters: List[Cluster], litmus_test: Union[LitmusTest, None] = None):
+    # True if all clusters are connected
+    one_big_network = True
+
+    # uses seperate queues for each machine, allowing for more flexibility, required for rumur
+    use_per_machine_queues = False
+
+    # replaces unions with enums, this is required for interopability with rumur
+    substitute_unions = False
+
+    # replaces mutisets with arrays, this is required for interopability with rumur
+    substitute_multisets = False
+
+    # Configurations for individual machines
+    machine_configs : List[MachineConfig] = []
+
+    def __init__(self,  clusters: List[Cluster], litmus_test: Union[LitmusTest, None] = None, config = {}, machine_configs: List[MachineConfig] = []):
         Debug.__init__(self)
 
         # Super message definition
@@ -101,6 +117,25 @@ class BaseConfig(Debug):
 
         self.c_ordered_cnt = (self.total_mach_cnt + 1) * (self.c_adr_max + 1)
         self.c_unordered_cnt = self.c_ordered_cnt
+
+        if "use_per_machine_queues" in config:
+            self.use_per_machine_queues = config["use_per_machine_queues"]
+        if "substitute_unions" in config:
+            self.substitute_unions = config["substitute_unions"]
+        if "substitute_multisets" in config:
+            self.substitute_multisets = config["substitute_multisets"]
+
+        if any([self.substitute_multisets, self.substitute_unions]) and not self.use_per_machine_queues:
+            self.pwarning("Substituting Unions/Multisets might not work as intended with the default queues, consider using per_machine_queues")
+        
+    def any_atomic_machines(self) -> bool:
+        return any([cfg.atomic for cfg in self.machine_configs])
+
+    def get_machine_config(self, machine: Machine) -> MachineConfig:
+        for cfg in self.machine_configs:
+            if cfg.machine == machine:
+                return cfg
+        return MachineConfig()
 
     def exist_vector_type(self, vector_def: str, vector_type: str) -> bool:
         if vector_def in self.var_vector_map and self.var_vector_map[vector_def] != vector_type:
@@ -139,3 +174,11 @@ class BaseConfig(Debug):
                     total_mach_cnt += arch_cnt
 
         return total_mach_cnt
+    
+    ## Returns a dictionary that can be passes as the config to the BaseConfig constructor to setup the default rumur configuration
+    def RumurDefault() -> dict:
+        return {
+            "use_per_machine_queues": True,
+            "substitute_unions": True,
+            "substitute_multisets": True
+        }

@@ -104,19 +104,33 @@ class GenNetworkRule(TemplateHandler, Debug):
                                     architecture_list: List[str],
                                     config: BaseConfig) -> str:
         ruleset_str_list = []
-        for network_str in ordered_network_list:
-            cond_rule_str = self.gen_network_rules(network_str, architecture_list,
-                                                   MurphiTemplates.f_ordered_rule_fifo,
-                                                   MurphiTemplates.f_ordered_rule_inner)
+        if not config.use_per_machine_queues:    
+            for network_str in ordered_network_list:
+                cond_rule_str = self.gen_network_rules(network_str, architecture_list,
+                                                    MurphiTemplates.f_ordered_rule_fifo,
+                                                    MurphiTemplates.f_ordered_rule_inner)
 
-            # Total order network or point to point ordered network
-            ord_net_func = MurphiTemplates.f_total_ordered_rule
+                # Total order network or point to point ordered network
+                ord_net_func = MurphiTemplates.f_total_ordered_rule
+                if not config.enable_total_order_network:
+                    ord_net_func = MurphiTemplates.f_ordered_rule
+
+                ruleset_str_list.append(self._stringReplKeys(self._openTemplate(ord_net_func),
+                                                            [network_str, MurphiTokens.k_vector_cnt, cond_rule_str])
+                                        + self.nl + self.nl)
+        else:
             if not config.enable_total_order_network:
-                ord_net_func = MurphiTemplates.f_ordered_rule
+                self.perror("Per machine queues only support total ordered networks")
 
-            ruleset_str_list.append(self._stringReplKeys(self._openTemplate(ord_net_func),
-                                                         [network_str, MurphiTokens.k_vector_cnt, cond_rule_str])
-                                    + self.nl + self.nl)
+            for arch_str in architecture_list:
+                ruleset_str_list.append("-- " + arch_str + self.nl)
+
+                for network_str in ordered_network_list:
+                    ruleset_str_list.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_rule),
+                                                            [network_str, arch_str])
+                                        + self.nl)
+                ruleset_str_list.append(self.nl)
+            
 
         return "".join(ruleset_str_list)
 

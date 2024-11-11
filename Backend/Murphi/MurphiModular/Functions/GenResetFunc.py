@@ -35,17 +35,31 @@ from DataObjects.Architecture.ClassFlatArchitecture import FlatArchitecture
 from Backend.Common.TemplateHandler.TemplateHandler import TemplateHandler
 from Backend.Murphi.MurphiTemp.TemplateHandler.MurphiTemplates import MurphiTemplates
 from Backend.Murphi.MurphiModular.MurphiTokens import MurphiTokens
+from Backend.Murphi.BaseConfig import BaseConfig
 
 from Debug.Monitor.ClassDebug import Debug
 
 
 class GenResetFunc(TemplateHandler, Debug):
 
-    def __init__(self, murphi_str: List[str], clusters: List[Cluster]):
+    def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateHandler.__init__(self)
         Debug.__init__(self)
 
         ruleset_str_list = []
+
+        if config.substitute_unions:
+            for cluster in clusters:
+                for arch in cluster.get_machine_architectures():
+                    count = cluster.get_machine_architecture_count(arch)
+                    if count > 1:
+                        ruleset_str_list.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_scalar_mapping),
+                                       [
+                                           str(arch),
+                                           MurphiTokens.k_sm,
+                                           MurphiTokens.k_obj_set
+                                       ]) + self.nl + self.nl)
+                        
 
         arch_set: Set[FlatArchitecture] = set()
 
@@ -56,7 +70,7 @@ class GenResetFunc(TemplateHandler, Debug):
                 ruleset_str_list.append(self.gen_machine_reset(arch))
                 arch_set.add(arch)
 
-        ruleset_str_list.append(self.add_tabs(self.gen_global_machine_reset(arch_set), 1))
+        ruleset_str_list.append(self.add_tabs(self.gen_global_machine_reset(clusters, arch_set, config), 1))
 
         murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(ruleset_str_list), 1))
 
@@ -95,11 +109,19 @@ class GenResetFunc(TemplateHandler, Debug):
             var_init_str += base_var_str + str(variable) + " := " + var_init_val + self.end
         return var_init_str
 
-    def gen_global_machine_reset(self, arch_set: Set[FlatArchitecture]) -> str:
+    def gen_global_machine_reset(self, clusters: List[Cluster], arch_set: Set[FlatArchitecture], config: BaseConfig) -> str:
         arch_reset_str = ""
 
         for arch in arch_set:
             arch_reset_str += MurphiTokens.k_reset_machines + str(arch) + "()" + self.end
+
+        if config.substitute_unions:
+            for cluster in clusters:
+                for arch in cluster.get_machine_architectures():
+                    if cluster.get_machine_architecture_count(arch) > 1:
+                        arch_reset_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_scalar_mapping_reset),
+                                        [str(arch), MurphiTokens.k_obj_set, MurphiTokens.k_sm])
+
 
         return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_reset_func),
                                     [MurphiTokens.k_reset_machines, arch_reset_str])

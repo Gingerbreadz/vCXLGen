@@ -28,6 +28,7 @@
 
 from typing import List
 
+from Backend.Murphi.BaseConfig import BaseConfig
 from Backend.Murphi.MurphiModular.MurphiTokens import MurphiTokens
 from Backend.Common.TemplateHandler.TemplateHandler import TemplateHandler
 from Backend.Murphi.MurphiTemp.TemplateHandler.MurphiTemplates import MurphiTemplates
@@ -37,12 +38,13 @@ from Debug.Monitor.ClassDebug import Debug
 
 class GenPermFunc(TemplateHandler, Debug):
 
-    def __init__(self, murphi_str: List[str]):
+    def __init__(self, murphi_str: List[str], config: BaseConfig):
         TemplateHandler.__init__(self)
         Debug.__init__(self)
 
         access_type = "----" + __name__.replace('.','/') + self.nl
-        access_type += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_perm_func),
+        template = MurphiTemplates.f_perm_func if not config.substitute_multisets else MurphiTemplates.f_perm_func_arr
+        access_type += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
                                                           [MurphiTokens.k_perm_type,
                                                            MurphiTokens.k_address,
                                                            MurphiTokens.k_machines]), 1) + self.nl

@@ -46,7 +46,7 @@ class GenCheckTypes(TemplateHandler, Debug):
 
         check_type_str_list = []
 
-        GenPermType(check_type_str_list, clusters)
+        GenPermType(check_type_str_list, clusters, config)
 
         if config.enable_read_write_execution and not config.litmus_testing:
             GenStoreMonitorType(check_type_str_list)

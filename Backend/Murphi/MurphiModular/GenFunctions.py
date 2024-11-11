@@ -40,6 +40,7 @@ from Backend.Murphi.MurphiModular.Functions.GenNetworkFunc import GenNetworkFunc
 from Backend.Murphi.MurphiModular.Functions.GenMessageConstrFunc import GenMessageConstrFunc
 from Backend.Murphi.MurphiModular.LitmusTestFunc.GenLitmusFunc import GenLitmusFunc
 from Backend.Murphi.MurphiModular.Functions.GenEventFunc import GenEventFunc
+from Backend.Murphi.MurphiModular.Functions.GenTypeFunc import GenTypeFunc
 
 from Backend.Murphi.BaseConfig import BaseConfig
 
@@ -54,12 +55,14 @@ class GenFunctions(TemplateBase):
 
         func_str_list: List[str] = []
 
+        # Generate type conversion functions
+        GenTypeFunc(func_str_list, clusters, config)
         # Generate reset state machine functions
-        GenResetFunc(func_str_list, clusters)
+        GenResetFunc(func_str_list, clusters, config)
         # Generate event functions
         GenEventFunc(func_str_list, clusters, config)
         # Generate the access tracking functions
-        GenPermFunc(func_str_list)
+        GenPermFunc(func_str_list, config)
         # Generate the store monitor functions
         GenStoreFunc(func_str_list,  config)
         # Generate the vector handling functions

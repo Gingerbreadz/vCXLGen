@@ -40,6 +40,7 @@ from Backend.Murphi.MurphiModular.Types.GenFIFO import GenFIFO
 from Backend.Murphi.MurphiModular.Types.GenMessage import GenMessage
 from Backend.Murphi.MurphiModular.Types.GenMachines import GenMachines
 from Backend.Murphi.MurphiModular.Types.GenLitmusCPUSet import GenLitmusCPUSet
+from Backend.Murphi.MurphiModular.Types.GenScalarMaps import GenScalarMaps
 
 from Backend.Murphi.BaseConfig import BaseConfig
 
@@ -57,13 +58,14 @@ class GenTypes(TemplateBase):
 
         GenAdrDef(type_str_list, config)
         GenEnums(type_str_list, clusters)
-        GenMachineSets(type_str_list, clusters)
+        GenMachineSets(type_str_list, clusters, config)
+        GenScalarMaps(type_str_list, clusters, config)
 
         GenCheckTypes(type_str_list, clusters,  config)
 
         # Generate interconnect
         GenMessage(type_str_list, clusters, config)
-        GenNetwork(type_str_list, config)
+        GenNetwork(type_str_list, clusters, config)
         GenFIFO(type_str_list,  config)
         GenMachines(type_str_list, clusters, config)
 

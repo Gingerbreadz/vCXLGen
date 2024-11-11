@@ -82,7 +82,12 @@ class GenMachines(TemplateHandler, Debug):
 
         for vector_def in self.arch_type_dict[arch].vector_defs:
             if not config.exist_vector_type(vector_def, self.arch_type_dict[arch].vector_defs[vector_def]):
-                type_def_str += self.arch_type_dict[arch].vector_defs[vector_def]
+                if not config.substitute_multisets:
+                    type_def_str += self.arch_type_dict[arch].vector_defs[vector_def]
+                else:
+                    type_def_str += MurphiTokens.k_vector + vector_def + ": array[Machines] of "+ MurphiTokens.t_bool + self.end
+                    type_def_str += self.arch_type_dict[arch].vector_defs[vector_def].split("\n",1)[1]
+
 
         var_vector_map: Dict[str, str] = {}
         for var_def in self.arch_type_dict[arch].variable_type_map:

@@ -34,13 +34,14 @@ from DataObjects.FlowDataTypes.ClassBaseAccess import BaseAccess
 from Backend.Murphi.MurphiModular.MurphiTokens import MurphiTokens
 from Backend.Common.TemplateHandler.TemplateHandler import TemplateHandler
 from Backend.Murphi.MurphiTemp.TemplateHandler.MurphiTemplates import MurphiTemplates
+from Backend.Murphi.BaseConfig import BaseConfig
 
 from Debug.Monitor.ClassDebug import Debug
 
 
 class GenPermType(TemplateHandler, Debug):
 
-    def __init__(self, murphi_str: List[str], clusters: List[Cluster]):
+    def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateHandler.__init__(self)
         Debug.__init__(self)
 
@@ -48,7 +49,8 @@ class GenPermType(TemplateHandler, Debug):
         for cluster in clusters:
             mach_cnt += len(cluster.system_tuple)
 
-        access_check_str = self._stringReplKeys(self._openTemplate(MurphiTemplates.f_perm_obj),
+        template = MurphiTemplates.f_perm_obj if not config.substitute_multisets else MurphiTemplates.f_perm_obj_arr
+        access_check_str = self._stringReplKeys(self._openTemplate(template),
                                                 [MurphiTokens.k_perm_type,
                                                  str(len(BaseAccess.Access_str_list)+1),
                                                  MurphiTokens.k_address,

@@ -1,5 +1,4 @@
-#  Copyright (c) 2021.  Nicolai Oswald
-#  Copyright (c) 2021.  University of Edinburgh
+#  Copyright (c) 2024.  Julian Pritzi
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -26,31 +25,30 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from typing import List
+from DataObjects.ClassMachine import Machine
 
-from Backend.Common.TemplateHandler.TemplateHandler import TemplateHandler
-from Backend.Murphi.MurphiTemp.TemplateHandler.MurphiTemplates import MurphiTemplates
-from Backend.Murphi.MurphiModular.MurphiTokens import MurphiTokens
-from Backend.Murphi.BaseConfig import BaseConfig
 from Debug.Monitor.ClassDebug import Debug
 
 
-class GenVectorFunc(TemplateHandler, Debug):
+class MachineConfig(Debug):
 
-    def __init__(self, murphi_str: List[str], config: BaseConfig):
-        TemplateHandler.__init__(self)
+    machine = None
+
+    # If the machine should be treated as an abstaract entity, which can implicitly perform internal communication
+    abstract = None
+
+    # If true the machine should be thought of as atomic
+    atomic = None
+    
+    def __init__(self,  machine: Machine, abstract = False, atomic = False ):
         Debug.__init__(self)
+        
+        self.machine = machine
+        self.abstract = abstract
+        self.atomic = atomic
 
-        vector_func_str = ""
-
-        if config.var_vector_map:
-            for vector in config.var_vector_map:
-                template = MurphiTemplates.f_vector_func if not config.substitute_multisets else MurphiTemplates.f_vector_func_arr
-                vector_func_str += (self._stringReplKeys(self._openTemplate(template),
-                                                         [vector,
-                                                          MurphiTokens.k_vector + vector,
-                                                          MurphiTokens.k_machines,
-                                                          MurphiTokens.k_vector_cnt]) +
-                                    self.nl + self.nl)
-            murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs(vector_func_str, 1))
-
+        if not self.machine:
+            self.perror("Machine not set for MachineConfig")
+        
+        if atomic and not abstract:
+            self.pwarning("Atomic machines generally also behave abstractly, consider setting the abstract flag to enable better optimizations")

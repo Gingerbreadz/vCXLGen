@@ -81,6 +81,10 @@ class MurphiTokens:
 
     ## GenMachineSets
     k_obj_set = "OBJSET_"
+    k_m_set = "m_"
+    
+    # GenScalarMaps
+    k_sm = "SCALAR_MAP_"
 
     ## GenMessage
     m_adr = (v_adr, k_address)

@@ -42,6 +42,8 @@ class MurphiTemplates:
     f_fifo_ruleset = "FIFO/FIFORuleset/fiforuleset.m"
     f_fifo_inner_rule = "FIFO/FIFORuleset/fifoinnerrule.m"
 
+    f_perm_obj_arr = "PermCheck/perm_obj_arr.m"
+    f_perm_func_arr = "PermCheck/perm_func_arr.m"
     f_perm_obj = "PermCheck/perm_obj.m"
     f_perm_func = "PermCheck/perm_func.m"
     f_perm_var = "PermCheck/perm_var.m"
@@ -51,6 +53,11 @@ class MurphiTemplates:
     f_store_monitor_func = "StoreFunction/GlobalStoreMonitor/GlobalStoreFunc.m"
 
     f_store_func = "StoreFunction/StoreFunc.m"
+
+    f_pmq_tot_o_network_func = "Network/TotalOrdered/pmq_onetworkfunc.m"
+    f_pmq_tot_o_network_func_send = "Network/TotalOrdered/pmq_onetworkfunc_send.m"
+    f_pmq_tot_o_network_func_pop = "Network/TotalOrdered/pmq_onetworkfunc_pop.m"
+    f_pmq_tot_o_rule = "Network/TotalOrdered/pmq_rule.m"
 
     f_ordered_network_func = "Network/Ordered/onetworkfunc.m"
     f_ordered_network_ready_func = "Network/Ordered/onetworkready.m"
@@ -77,9 +84,11 @@ class MurphiTemplates:
     f_no_fifo = "Network/nofifo.m"
 
     f_multicast_network_func = "Network/multicastfunc.m"
+    f_multicast_network_func_arr = "Network/multicastfunc_arr.m"
     f_broadcast_network_func = "Network/broadcastfunc.m"
 
     f_vector_func = "VectorFunc/vectorfunc.m"
+    f_vector_func_arr = "VectorFunc/vectorfunc_arr.m"
 
     f_access_rule_set = "RuleSet/AccessHandling/AccessRuleSet.m"
     f_access_rule = "RuleSet/AccessHandling/AccessRule.m"
@@ -88,6 +97,12 @@ class MurphiTemplates:
     f_remote_event_rule = "RuleSet/RemoteEvent/TestRemoteEventRule.m"
 
     f_remote_event_serve_func = "RuleSet/RemoteEvent/ServeRemoteEvent.m"
+
+    # Types
+    f_is_element = "Types/is_element.m"
+    f_m_mappings = "Types/m_mappings.m"
+    f_scalar_mapping = "Types/scalar_mapping.m"
+    f_scalar_m_mapping_for = "Types/scalar_m_mapping_for.m"
 
     # Reset functions
     f_machine_reset_body = "ResetFunc/MachineResetBody.m"
@@ -136,3 +151,4 @@ class MurphiTemplates:
     f_event_queue_def = "Event/EventQueueDef.m"
     f_event_func_general = "Event/GeneralEvent.m"
     f_reset_func = "ResetFunc/ResetFunc.m"
+    f_scalar_mapping_reset = "ResetFunc/scalar_mapping_reset.m"
