@@ -65,10 +65,10 @@ class GenResetFunc(TemplateHandler, Debug):
 
         for cluster in clusters:
             machines = set(cluster.system_tuple)
+            arch_set.update(set([machine.arch for machine in machines]))
 
-            for arch in set([machine.arch for machine in machines]):
-                ruleset_str_list.append(self.gen_machine_reset(arch))
-                arch_set.add(arch)
+        for arch in arch_set:
+            ruleset_str_list.append(self.gen_machine_reset(arch))
 
         ruleset_str_list.append(self.add_tabs(self.gen_global_machine_reset(clusters, arch_set, config), 1))
 

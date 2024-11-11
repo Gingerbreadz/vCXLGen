@@ -73,21 +73,20 @@ class GenNetworkFunc(TemplateHandler, Debug):
     def gen_ordered_send_func(self, clusters: List[Cluster], config: BaseConfig):
         network_str = ""
         if not config.use_per_machine_queues:
-            for cluster in clusters:
-                for global_arch in cluster.get_global_architectures():
+            for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
 
-                    # Total order network or point to point ordered network
-                    ord_net_func = MurphiTemplates.f_total_ordered_network_func
-                    if not config.enable_total_order_network:
-                        ord_net_func = MurphiTemplates.f_ordered_network_func
+                # Total order network or point to point ordered network
+                ord_net_func = MurphiTemplates.f_total_ordered_network_func
+                if not config.enable_total_order_network:
+                    ord_net_func = MurphiTemplates.f_ordered_network_func
 
-                    for ordered_network in global_arch.network.ordered_networks:
-                        network_str += self._stringReplKeys(self._openTemplate(ord_net_func),
-                                                            [str(ordered_network),
-                                                            MurphiTokens.k_vector_cnt,
-                                                            MurphiTokens.c_ordered_const,
-                                                            MurphiTokens.k_machines]) \
-                                    + self.nl + self.nl
+                for ordered_network in global_arch.network.ordered_networks:
+                    network_str += self._stringReplKeys(self._openTemplate(ord_net_func),
+                                                        [str(ordered_network),
+                                                        MurphiTokens.k_vector_cnt,
+                                                        MurphiTokens.c_ordered_const,
+                                                        MurphiTokens.k_machines]) \
+                                + self.nl + self.nl
         else:
             if not config.enable_total_order_network:
                 self.perror("Per machine queues are only implemented for total ordered networks")
@@ -120,8 +119,7 @@ class GenNetworkFunc(TemplateHandler, Debug):
 
     def gen_unordered_send_func(self, clusters: List[Cluster]):
         network_str = ""
-        for cluster in clusters:
-            for global_arch in cluster.get_global_architectures():
+        for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
                 for unordered_network in global_arch.network.unordered_networks:
                     network_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_unordered_network_func),
                                                         [str(unordered_network),
@@ -134,14 +132,13 @@ class GenNetworkFunc(TemplateHandler, Debug):
     # @param clusters A list of clusters which create the system
     def gen_multicast_func(self, clusters: List[Cluster], config: BaseConfig) -> str:
         multicast_str_list: List[str] = []
-        for cluster in clusters:
-            multicast_str_list.append(self._multicast_gen_level(cluster, config))
+        multicast_str_list.append(self._multicast_gen_level(clusters, config))
         return ''.join(multicast_str_list)
 
-    def _multicast_gen_level(self, cluster: Cluster, config: BaseConfig) -> str:
+    def _multicast_gen_level(self, clusters: List[Cluster], config: BaseConfig) -> str:
         multicast_str_list: List[str] = []
 
-        for arch in cluster.get_machine_architectures():
+        for arch in Cluster.get_machine_architectures_in_clusters(clusters):
             # Dict[variable_str, network_str]
             multi_cast_dict = MultiDict()
 
@@ -156,11 +153,11 @@ class GenNetworkFunc(TemplateHandler, Debug):
                                     str(children[0]) in arch.global_arch.network.ordered_networks)
                         multi_cast_dict[str(children[0])] = str(children[2])
 
-            self._multicast_func_gen(multicast_str_list, multi_cast_dict, cluster, config)
+            self._multicast_func_gen(multicast_str_list, multi_cast_dict, clusters, config)
 
         return ''.join(multicast_str_list)
 
-    def _multicast_func_gen(self, multicast_str_list: List[str], multi_cast_dict: MultiDict, cluster: Cluster, config: BaseConfig):
+    def _multicast_func_gen(self, multicast_str_list: List[str], multi_cast_dict: MultiDict, cluster: List[Cluster], config: BaseConfig):
         for network_name in multi_cast_dict:
             var_defs = set(multi_cast_dict[network_name])
             for var_def in var_defs:

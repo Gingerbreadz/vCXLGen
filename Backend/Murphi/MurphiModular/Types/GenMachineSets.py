@@ -40,14 +40,16 @@ class GenMachineSets(TemplateBase):
     def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateBase.__init__(self)
 
+        mach_list: set[str] = set()
         all_mach_cnt_dict: Dict[str, Union[int, str]] = {}
         cluster_str = ""
 
         for cluster in clusters:
             cluster_str += "-- Cluster: " + str(cluster) + self.nl
             mach_cnt_dict = self.gen_cluster_machines(cluster)
-            cluster_str += self.gen_obj_sets(mach_cnt_dict)
+            cluster_str += self.gen_obj_sets(mach_cnt_dict, mach_list)
             cluster_str += self.gen_cluster_set(cluster, mach_cnt_dict, config)
+            mach_list.update(mach_cnt_dict.keys())
             all_mach_cnt_dict |= mach_cnt_dict
 
         cluster_str += self.nl
@@ -65,9 +67,11 @@ class GenMachineSets(TemplateBase):
             mach_cnt_dict[str(arch)] = mach_count
         return mach_cnt_dict
 
-    def gen_obj_sets(self, mach_cnt_dict: Dict[str, int]):
+    def gen_obj_sets(self, mach_cnt_dict: Dict[str, int], mach_list: set[str]):
         mach_set_str = ""
         for mach in mach_cnt_dict:
+            if mach in mach_list:
+                continue
             mach_set_str += MurphiTokens.k_obj_set + mach + ": "
             if mach_cnt_dict[mach] > 1:
                 mach_set_str += "scalarset(" + str(mach_cnt_dict[mach]) + ")" + self.end
