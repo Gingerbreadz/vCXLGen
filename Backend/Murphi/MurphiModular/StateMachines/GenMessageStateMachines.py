@@ -67,8 +67,16 @@ class GenMessageStateMachines(TemplateBase, Debug):
         for arch in arch_set:
             self.arch_local_var_dict[arch] = GenMurphiRevTree(cluster, arch, config, True)
             func_str = (self.gen_state_machine_graph(arch))
-            fsm_msg_str_list.append(self._gen_mach_func_header(arch) + func_str + self._gen_mach_func_end()
-                                        + self.nl)
+            if config.substitute_unions:
+                # TODO: Hacky solution, please fix
+                import re
+                func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", func_str)
+
+                fsm_msg_str_list.append(self._gen_mach_func_header(arch, MurphiTokens.v_m_mach, "alias m : to_m_" + str(arch) + "("+MurphiTokens.v_m_mach+") do" + self.nl) + func_str + self._gen_mach_func_end("endalias" + self.end)
+                                            + self.nl)
+            else:
+                fsm_msg_str_list.append(self._gen_mach_func_header(arch) + func_str + self._gen_mach_func_end()
+                                            + self.nl)
 
         murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(fsm_msg_str_list), 1))
 
@@ -119,10 +127,10 @@ class GenMessageStateMachines(TemplateBase, Debug):
                 aux_checks_str += "endif" + self.end
         return aux_checks_str
 
-    def _gen_mach_func_header(self, arch: FlatArchitecture) -> str:
+    def _gen_mach_func_header(self, arch: FlatArchitecture, mmach= MurphiTokens.v_mach, alias_str = "") -> str:
         fct_header = "function " + MurphiTokens.k_msg_func + str(arch) + \
                     "(" + MurphiTokens.v_in_msg + ":" + MurphiTokens.k_message + "; " \
-                     + MurphiTokens.v_mach + ":" + MurphiTokens.k_obj_set + str(arch) \
+                     + mmach + ":" + MurphiTokens.k_obj_set + str(arch) \
                      + ") : boolean" + self.end
         fct_header += self.arch_local_var_dict[arch].gen_local_variables()
 
@@ -130,13 +138,15 @@ class GenMessageStateMachines(TemplateBase, Debug):
         fct_header += self.tab + "alias " + MurphiTokens.v_adr + ": " + MurphiTokens.v_in_msg \
                       + "." + MurphiTokens.v_adr + " do" + self.nl
         fct_header += self.tab + "alias " + MurphiTokens.v_cbe + ": " + MurphiTokens.k_instance + str(arch) + \
-                     "[" + MurphiTokens.v_mach + "]." + MurphiTokens.v_cache_block + "[" + MurphiTokens.v_adr + "] do" \
+                     "[" + mmach + "]." + MurphiTokens.v_cache_block + "[" + MurphiTokens.v_adr + "] do" \
                      + self.nl
+        fct_header += alias_str
         fct_header += "switch " + MurphiTokens.v_cbe + "." + MurphiTokens.k_state + self.nl
         return fct_header
 
-    def _gen_mach_func_end(self) -> str:
+    def _gen_mach_func_end(self, alias_str= "") -> str:
         fct_end = self._gen_end_switch_str()
+        fct_end += alias_str
         fct_end += "endalias" + self.end
         fct_end += "endalias" + self.end
         fct_end += "return false" + self.end

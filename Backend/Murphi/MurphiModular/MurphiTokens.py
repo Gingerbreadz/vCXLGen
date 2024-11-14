@@ -45,6 +45,7 @@ class MurphiTokens:
     ''' Variables '''
     v_adr = "adr"
     v_mach = "m"             # if you change this please change the template files too
+    v_m_mach = "mTyped"      
     v_cbe = "cbe"
     v_evt = "evt"
     v_m_type = "mtype"

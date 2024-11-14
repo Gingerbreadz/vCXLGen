@@ -45,5 +45,5 @@ end;
 -- .empty()
 function HasElement_$0$(var sv:$1$) : boolean;
 begin
-    return VectorCount_$0$(sv, true) > 0;
+    return VectorCount_$0$(sv) > 0;
 end;

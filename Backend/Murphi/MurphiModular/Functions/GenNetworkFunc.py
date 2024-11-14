@@ -259,7 +259,7 @@ class GenNetworkFunc(TemplateHandler, Debug):
                 network_ready_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_unordered_network_ready_func),
                                                           [str(network), MurphiTokens.c_unordered_const,
                                                            str(subtraction_cnt)]) + self.nl
-            else:
+            elif not config.use_per_machine_queues:
                 # Total order network or point to point ordered network
                 ord_net_func = MurphiTemplates.f_total_ordered_network_ready_func
                 if not config.enable_total_order_network:
@@ -269,6 +269,21 @@ class GenNetworkFunc(TemplateHandler, Debug):
                                                           [str(network), MurphiTokens.k_vector_cnt,
                                                            MurphiTokens.c_ordered_const, str(subtraction_cnt)]) \
                                      + self.nl
+            else:
+                assert config.enable_total_order_network
+                body_str = ""
+
+                archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
+                for arch in archs:
+                    body_str += "for dst:OBJSET_" + arch + " do" + self.nl + \
+                        self.tab + "if cnt_" + str(network) + "_" + arch + "[dst] >= (" + MurphiTokens.c_ordered_const + "-" + str(subtraction_cnt) + ") then" + self.nl + \
+                        self.tab + self.tab + "return false" + self.end + \
+                        self.tab + "endif" + self.end + "endfor" + self.end
+                
+                network_ready_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_ready),
+                                                          [str(network), self.add_tabs(body_str, 1)]) \
+
+
 
         return network_ready_str + self.gen_global_check_network_ready_func(networks) + self.nl
 
@@ -317,8 +332,26 @@ class GenNetworkFunc(TemplateHandler, Debug):
         self.perror("Ordered and unordered networks have identical identifiers",
                     not ordered_network_set.intersection(unordered_network_set))
 
-        return self.add_tabs(self.gen_ordered_network_reset_str(ordered_network_set, config)
-                             + self.gen_unordered_network_reset_str(unordered_network_set), 1)
+        if not config.use_per_machine_queues:
+            return self.add_tabs(self.gen_ordered_network_reset_str(ordered_network_set, config)
+                                + self.gen_unordered_network_reset_str(unordered_network_set), 1)
+        else:
+            assert config.enable_total_order_network
+            body_str = ""
+
+            archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
+            for arch in archs:
+                for network in ordered_network_set:
+                    body_str += "undefine " + str(network) + "_" + arch + self.end
+
+                body_str += "for dst:OBJSET_" + arch + " do" + self.nl
+                
+                for network in ordered_network_set:
+                    body_str += self.tab + "cnt_" + str(network) + "_" + arch + "[dst] := 0" + self.end
+                
+                body_str += "endfor" + self.end + self.nl
+                
+            return self.add_tabs(body_str, 1)
 
     def gen_ordered_network_reset_str(self, ordered_network_list: Set[str], config: BaseConfig) -> str:
         ordered_network_reset_str = ""

@@ -50,7 +50,7 @@ class MESIxMSI_HH(RunHH, Debug):
 
     def run_protocol_tests(self):
         path = OrderedReplyForwardingProtocols().get_cur_protocol_path()
-        protocol_1_name: str = "MESI.pcc"
+        protocol_1_name: str = "MSI.pcc" # TODO: NOTE AAAAAAAAAAAAAAAAAAAAAAAAAAAAH FIX DO NOT PUSH!!!!!!!!
         protocol_2_name: str = "MSI.pcc"
         self.run_test(protocol_1_name, protocol_2_name, path,
                       [self.translation_table_first, self.translation_table_second],

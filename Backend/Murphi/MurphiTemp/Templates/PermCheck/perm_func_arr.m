@@ -11,7 +11,7 @@ begin
   endalias;
 end;
 
-procedure Set_perm(acc_type: $0$; adr: $1$; m: $2$);
+procedure Set_perm(acc: $0$; adr: $1$; m: $2$);
 begin
   alias l_perm_set:g_perm[m][adr] do
     l_perm_set[acc] := true;
@@ -23,7 +23,7 @@ begin
   for m:$2$ do
     for adr:$1$ do
       for acc : $0$ do
-        l_perm_set[acc] := false;
+        g_perm[m][adr][acc] := false;
       endfor;
     endfor;
   endfor;

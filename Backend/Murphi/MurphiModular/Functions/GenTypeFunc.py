@@ -57,7 +57,7 @@ class GenTypeFunc(TemplateHandler, Debug):
                     for idx in range(cluster.get_machine_architecture_count(arch)):
                         if idx > 0:
                             type_str += " | "
-                        type_str += MurphiTokens.k_m_set + str(arch) + "_" + str(idx)
+                        type_str += "m = " + MurphiTokens.k_m_set + str(arch) + "_" + str(idx)
                         
                     type_func_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_is_element),
                                     [
@@ -81,15 +81,24 @@ class GenTypeFunc(TemplateHandler, Debug):
                                     ])
                     else:
                         # Currently idx will only ever be 0, as other cases are all handled as scalarsets, this accounts for the if condition above might changing in the future
-                        for idx in range(cluster.get_machine_architecture_count(arch)):
-                            to_m_str += "if o =     " + str(arch) + "_" + str(idx) + " then" + self.nl + \
-                                self.tab + "return " + MurphiTokens.k_m_set + str(arch) + "_" + str(idx) + self.end + "els"
-                        to_m_str += "e" + self.nl + self.tab + "error \"can not map to m_" + str(arch) + "\"" + self.nl + "endif" + self.end
+                        if cluster.get_machine_architecture_count(arch) > 1:
+                            for idx in range(cluster.get_machine_architecture_count(arch)):
+                                to_m_str += "if o =     " + str(arch) + "_" + str(idx) + " then" + self.nl + \
+                                    self.tab + "return " + MurphiTokens.k_m_set + str(arch) + "_" + str(idx) + self.end + "els"
+                            to_m_str += "e" + self.nl + self.tab + "error \"can not map to m_" + str(arch) + "\"" + self.nl + "endif" + self.end
 
-                        for idx in range(cluster.get_machine_architecture_count(arch)):
+                            for idx in range(cluster.get_machine_architecture_count(arch)):
+                                from_m_str += "if m = " + MurphiTokens.k_m_set + str(arch) + "_" + str(idx) + " then" + self.nl + \
+                                    self.tab + "return " + str(arch) + "_" + str(idx) + self.end + "els"
+                            from_m_str += "e" + self.nl + self.tab + "error \"can not map from m_" + str(arch) + "\"" + self.nl + "endif" + self.end
+                        else:
+                            to_m_str += "if o =     " + str(arch) + " then" + self.nl + \
+                                    self.tab + "return " + MurphiTokens.k_m_set + str(arch) + "_" + str(idx) + self.end + "els"
+                            to_m_str += "e" + self.nl + self.tab + "error \"can not map to m_" + str(arch) + "\"" + self.nl + "endif" + self.end
+
                             from_m_str += "if m = " + MurphiTokens.k_m_set + str(arch) + "_" + str(idx) + " then" + self.nl + \
-                                self.tab + "return " + str(arch) + "_" + str(idx) + self.end + "els"
-                        from_m_str += "e" + self.nl + self.tab + "error \"can not map from m_" + str(arch) + "\"" + self.nl + "endif" + self.end
+                                    self.tab + "return " + str(arch) + self.end + "els"
+                            from_m_str += "e" + self.nl + self.tab + "error \"can not map from m_" + str(arch) + "\"" + self.nl + "endif" + self.end
                         
 
 

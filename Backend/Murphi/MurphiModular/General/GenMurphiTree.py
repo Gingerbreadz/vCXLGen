@@ -227,8 +227,8 @@ class GenMurphiRevTree(GenPCCtoMurphi_Rev):
                         variable = str(cond_op)
                         if variable in self.arch.machine.variables_init_val:
                             new_operation_list.append(self.init_val_node_for_var(variable))
-                        else:
-                            new_operation_list.append(self.undef_node_for_var(variable))
+                        # else:
+                        #     new_operation_list.append(self.undef_node_for_var(variable))
         return new_operation_list
 
     def init_val_node_for_var(self, variable: str) -> CommonTree:

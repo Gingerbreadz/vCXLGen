@@ -101,7 +101,18 @@ class GenAccessStateMachines(TemplateBase):
                              None not in ret_target_list)
 
                 access_func_str = self.add_tabs("".join(ret_target_list), 1)
-                access_str += (self._gen_access_func_header(arch, state, guard, gen_murphi_tree) +
+
+                if config.substitute_unions:
+                    # TODO: Hacky solution, please fix
+                    import re
+                    access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", access_func_str)
+                    access_func_str = "alias m : to_m_" + str(arch) + "("+MurphiTokens.v_m_mach+") do" + self.nl + access_func_str + "endalias" + self.end
+
+                    access_str += (self._gen_access_func_header(arch, state, guard, gen_murphi_tree, MurphiTokens.v_m_mach) +
+                               access_func_str +
+                               self._gen_access_func_end()) + self.nl
+                else:
+                    access_str += (self._gen_access_func_header(arch, state, guard, gen_murphi_tree) +
                                access_func_str +
                                self._gen_access_func_end()) + self.nl
         return access_str
@@ -142,18 +153,18 @@ class GenAccessStateMachines(TemplateBase):
         return access_str
 
     def _gen_access_func_header(self, arch: FlatArchitecture, start_state: State_v2, guard,
-                                pcc_to_target: Union[GenMurphiRevTree, GenPCCToTarget]) -> str:
+                                pcc_to_target: Union[GenMurphiRevTree, GenPCCToTarget], mmach = MurphiTokens.v_mach) -> str:
 
         fct_header = "procedure " + MurphiTokens.k_access_func + str(arch) + "_" + str(start_state) + "_" + \
                      str(guard) + \
-                     "(" + MurphiTokens.v_adr + ":" + MurphiTokens.k_address + "; " + MurphiTokens.v_mach + ":" \
+                     "(" + MurphiTokens.v_adr + ":" + MurphiTokens.k_address + "; " + mmach + ":" \
                      + MurphiTokens.k_obj_set + str(arch) + \
                      ")" + self.end
         fct_header += pcc_to_target.gen_local_variables()
 
         fct_header += "begin" + self.nl
         fct_header += "alias " + MurphiTokens.v_cbe + ": " + MurphiTokens.k_instance + str(arch) + \
-                      "[" + MurphiTokens.v_mach + "]." + MurphiTokens.v_cache_block + "[" + MurphiTokens.v_adr \
+                      "[" + mmach + "]." + MurphiTokens.v_cache_block + "[" + MurphiTokens.v_adr \
                       + "] do" + self.nl
         return fct_header
 

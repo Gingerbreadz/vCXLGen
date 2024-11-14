@@ -68,16 +68,16 @@ class GenResetFunc(TemplateHandler, Debug):
             arch_set.update(set([machine.arch for machine in machines]))
 
         for arch in arch_set:
-            ruleset_str_list.append(self.gen_machine_reset(arch))
+            ruleset_str_list.append(self.gen_machine_reset(arch, config))
 
         ruleset_str_list.append(self.add_tabs(self.gen_global_machine_reset(clusters, arch_set, config), 1))
 
         murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(ruleset_str_list), 1))
 
-    def gen_machine_reset(self, arch: FlatArchitecture) -> str:
+    def gen_machine_reset(self, arch: FlatArchitecture, config: BaseConfig) -> str:
         base_var_str = MurphiTokens.k_instance + str(arch) + "[i]." + MurphiTokens.v_cache_block + "[a]."
         init_var_str = base_var_str + self.gen_mach_state(arch)
-        init_var_str += self.gen_data_init(arch, base_var_str)
+        init_var_str += self.gen_data_init(arch, base_var_str, config)
         init_var_str += self.gen_variable_inits(arch, base_var_str)
 
         ret_str = self._stringReplKeys(self._openTemplate(MurphiTemplates.f_machine_reset_body),
@@ -93,11 +93,14 @@ class GenResetFunc(TemplateHandler, Debug):
     def gen_mach_state(self, arch: FlatArchitecture) -> str:
         return MurphiTokens.k_state + " := " + str(arch) + "_" + str(arch.init_state) + self.end
 
-    def gen_data_init(self, arch: FlatArchitecture, base_var_str: str):
+    def gen_data_init(self, arch: FlatArchitecture, base_var_str: str, config: BaseConfig):
         data_init_str = ""
         for variable in arch.machine.variables:
             if str(arch.machine.variables[variable]) == ProtoParserBase.k_data:
                 data_init_str += base_var_str + str(variable) + " := 0" + self.end
+            elif config.substitute_multisets and str(arch.machine.variables[variable]) == ProtoParserBase.t_id and "cache" in str(variable): # TODO: Hack idk how to differentiate between vector and owner
+                data_init_str += "for m : Machines do" + self.nl + self.tab + \
+                      base_var_str + str(variable) + "[m] := false" + self.end + "endfor" + self.end
             elif variable not in arch.machine.variables_init_val:
                 data_init_str += MurphiTokens.k_undefine + " " + base_var_str + str(variable) + self.end
         return data_init_str
