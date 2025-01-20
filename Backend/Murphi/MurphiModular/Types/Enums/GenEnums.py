@@ -28,6 +28,7 @@
 
 from typing import List
 
+from Backend.Murphi.BaseConfig import BaseConfig
 from DataObjects.ClassCluster import Cluster
 
 from Backend.Common.TemplateHandler.TemplateBase import TemplateBase
@@ -38,14 +39,20 @@ from Backend.Murphi.MurphiModular.Types.Enums.SubEnums.GenArchEnums import GenAr
 
 class GenEnums(TemplateBase):
 
-    def __init__(self, murphi_str: List[str], clusters: List[Cluster]):
+    def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateBase.__init__(self)
 
         enum_str_list = []
 
         GenAccess(enum_str_list, clusters)
         GenMessageTypes(enum_str_list, clusters)
-        GenArchEnums(enum_str_list, clusters)
+        GenArchEnums(enum_str_list, clusters, config)
+
+        if config.eq_check:
+            # Generate eq check states
+            enum_str_list.append(
+                "SystemStates: enum { systemLHS, systemRHS, systemLHSExt, systemRHSExt };" + self.nl
+            )
 
         enum_str = ''.join(enum_str_list)
 

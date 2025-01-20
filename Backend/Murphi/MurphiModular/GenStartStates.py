@@ -28,19 +28,23 @@
 
 from typing import List
 
+from Backend.Murphi.BaseConfig import BaseConfig
 from Backend.Murphi.MurphiModular.MurphiTokens import MurphiTokens
 from Backend.Common.TemplateHandler.TemplateBase import TemplateBase
 
 
 class GenStartStates(TemplateBase):
 
-    def __init__(self, murphi_str: List[str]):
+    def __init__(self, murphi_str: List[str], config: BaseConfig):
         TemplateBase.__init__(self)
 
         # Add tabs to support sublime section hiding
-        murphi_str.append("--" + __name__.replace('.','/') + self.nl + self.nl + self.add_tabs(self.gen_base_reset(), 1)
+        murphi_str.append("--" + __name__.replace('.','/') + self.nl + self.nl + self.add_tabs(self.gen_base_reset(config), 1)
                           + self.nl)
 
-    def gen_base_reset(self) -> str:
+    def gen_base_reset(self, config: BaseConfig) -> str:
         base_reset_str = MurphiTokens.k_system_reset + "()"+ self.end
+
+        if config.eq_check:
+            base_reset_str += "BackupRHS()" + self.end
         return "startstate" + self.nl + self.add_tabs(base_reset_str, 1) + "endstartstate" + self.end

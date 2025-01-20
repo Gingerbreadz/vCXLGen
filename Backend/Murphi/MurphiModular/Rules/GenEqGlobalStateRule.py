@@ -1,7 +1,7 @@
 #  Copyright (c) 2021.  Nicolai Oswald
 #  Copyright (c) 2021.  University of Edinburgh
 #  All rights reserved.
-# 
+#
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions are
 #  met: redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
 #  neither the name of the copyright holders nor the names of its
 #  contributors may be used to endorse or promote products derived from
 #  this software without specific prior written permission.
-# 
+#
 #  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 #  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 #  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -24,36 +24,26 @@
 #  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
+#
 
 from typing import List
 
-from DataObjects.ClassCluster import Cluster
-from DataObjects.FlowDataTypes.ClassBaseAccess import BaseAccess
-
+from Backend.Common.TemplateHandler.TemplateHandler import TemplateHandler
+from Backend.Murphi.MurphiTemp.TemplateHandler.MurphiTemplates import MurphiTemplates
 from Backend.Murphi.MurphiModular.MurphiTokens import MurphiTokens
-from Backend.Common.TemplateHandler.TemplateBase import TemplateBase
+from Backend.Murphi.BaseConfig import BaseConfig
 
 
-class GenAccess(BaseAccess, TemplateBase):
+class GenEqGlobalStateRule(TemplateHandler):
 
-    def __init__(self, murphi_str: List[str], clusters: List[Cluster]):
-        BaseAccess.__init__(self)
-        TemplateBase.__init__(self)
+    def __init__(self, murphi_str: List[str],
+                 config: BaseConfig):
+        TemplateHandler.__init__(self)
 
-        access_str = "------" + __name__.replace('.','/') + self.nl
-        access_str += MurphiTokens.k_perm_type + ": enum {" + self.nl
+        if config.eq_check:
+            rule_str = self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_global_rules),
+                                           []) + self.nl + self.nl
 
-        msgs = set()
-        for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
-            for msg in global_arch.base_access.access_map:
-                if str(msg) in msgs:
-                    continue
-                msgs.add(str(msg))
-                access_str += self.tab + str(msg) + ", " + self.nl
-
-        access_str += self.tab + "none" + self.nl
-        access_str += "}" + self.end + self.nl
-
-        murphi_str.append(access_str)
-
+            # Add tabs to support sublime section hiding
+            murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.nl +
+                              self.add_tabs("".join(rule_str), 1) + self.nl)

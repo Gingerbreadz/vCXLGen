@@ -83,6 +83,13 @@ class BaseConfig(Debug):
     # replaces mutisets with arrays, this is required for interopability with rumur
     substitute_multisets = False
 
+    # generates an equivalence check for the L2 layer, maps LHS & RHS, maps LHS dir to RHS cache
+    eq_check = False
+    eq_lhs = ""
+    eq_rhs = ""
+
+    eq_check_live = False
+
     # Configurations for individual machines
     machine_configs : List[MachineConfig] = []
 
@@ -124,6 +131,11 @@ class BaseConfig(Debug):
             self.substitute_unions = config["substitute_unions"]
         if "substitute_multisets" in config:
             self.substitute_multisets = config["substitute_multisets"]
+        if "eq_check" in config:
+            self.eq_check = config["eq_check"]
+            self.eq_rhs = config["eq_rhs"]
+            self.eq_lhs = config["eq_lhs"]
+            self.eq_check_live = config["eq_check_live"]
 
         if any([self.substitute_multisets, self.substitute_unions]) and not self.use_per_machine_queues:
             self.pwarning("Substituting Unions/Multisets might not work as intended with the default queues, consider using per_machine_queues")
@@ -182,4 +194,16 @@ class BaseConfig(Debug):
             "use_per_machine_queues": True,
             "substitute_unions": True,
             "substitute_multisets": True
+        }
+
+    ## Returns a dictionary that can be passes as the config to the BaseConfig constructor to setup the default equivalence check configuration
+    def EqCheckDefault() -> dict:
+        return {
+            "use_per_machine_queues": True,
+            "substitute_unions": True,
+            "substitute_multisets": True,
+            "eq_check": True,
+            "eq_lhs": "directoryL1LHS_0",
+            "eq_rhs": "cacheL2RHS_1",
+            "eq_check_live": True
         }

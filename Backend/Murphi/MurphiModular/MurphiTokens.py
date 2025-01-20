@@ -64,7 +64,7 @@ class MurphiTokens:
     k_undefine = 'undefine'
 
     k_state = "State"
-
+    k_system_state = "g_system_state"
     ## GenConst
     c_val_cnt_const = "VAL_COUNT"
     c_adr_cnt_const = "ADR_COUNT"

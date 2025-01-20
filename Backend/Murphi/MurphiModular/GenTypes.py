@@ -57,7 +57,7 @@ class GenTypes(TemplateBase):
         type_str_list: List[str] = []
 
         GenAdrDef(type_str_list, config)
-        GenEnums(type_str_list, clusters)
+        GenEnums(type_str_list, clusters, config)
         GenMachineSets(type_str_list, clusters, config)
         GenScalarMaps(type_str_list, clusters, config)
 

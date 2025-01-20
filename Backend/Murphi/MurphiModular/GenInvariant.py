@@ -39,6 +39,9 @@ class GenInvariant(MurphiTokens, TemplateHandler):
     def __init__(self, murphi_str: List[str], config: BaseConfig):
         TemplateHandler.__init__(self)
 
+        if config.eq_check:
+            murphi_str.append("--" + __name__.replace('.','/') + " : EqCheckLiveness" + self.nl + self.add_tabs(self.gen_eq_check_invariants(), 1))
+
         murphi_str.append("--" + __name__.replace('.','/') + self.nl + self.add_tabs(self.gen_SWMR_invariant(config), 1))
 
     def gen_SWMR_invariant(self, config: BaseConfig):
@@ -59,3 +62,6 @@ class GenInvariant(MurphiTokens, TemplateHandler):
         return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_invariant_EW),
                                     [self.k_address, self.k_machines, "store", "load"]) + self.nl
 
+    def gen_eq_check_invariants(self):
+        return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_check_invariant),
+                                    []) + self.nl

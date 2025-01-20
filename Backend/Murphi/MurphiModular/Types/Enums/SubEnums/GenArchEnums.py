@@ -28,6 +28,7 @@
 
 from typing import List, Dict, Any
 
+from Backend.Murphi.BaseConfig import BaseConfig
 from DataObjects.ClassCluster import Cluster
 from DataObjects.States.ClassStatev2 import State_v2
 
@@ -38,13 +39,17 @@ from Debug.Monitor.ClassDebug import Debug
 
 class GenArchEnums(TemplateBase, Debug):
 
-    def __init__(self, murphi_str: List[str], clusters: List[Cluster]):
+    def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateBase.__init__(self)
         Debug.__init__(self)
 
         state_enum_str = "------" + __name__.replace('.', '/') + self.nl
 
+        archs = set()
         for arch in Cluster.get_machine_architectures_in_clusters(clusters):
+            if config.eq_check and str(arch) in archs:
+                continue
+            archs.add(str(arch))
             # Generate states
             state_enum_str += self.gen_state_enums(str(arch), arch.get_architecture_states_verified())
             # Generate events

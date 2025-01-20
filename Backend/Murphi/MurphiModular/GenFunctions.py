@@ -41,6 +41,8 @@ from Backend.Murphi.MurphiModular.Functions.GenMessageConstrFunc import GenMessa
 from Backend.Murphi.MurphiModular.LitmusTestFunc.GenLitmusFunc import GenLitmusFunc
 from Backend.Murphi.MurphiModular.Functions.GenEventFunc import GenEventFunc
 from Backend.Murphi.MurphiModular.Functions.GenTypeFunc import GenTypeFunc
+from Backend.Murphi.MurphiModular.Functions.GenEQCheckMappingFunc import GenEQCheckMappingFunc
+from Backend.Murphi.MurphiModular.Functions.GenEQCheckComparisonFunc import GenEQCheckComparisonFunc
 
 from Backend.Murphi.BaseConfig import BaseConfig
 
@@ -57,6 +59,9 @@ class GenFunctions(TemplateBase):
 
         # Generate type conversion functions
         GenTypeFunc(func_str_list, clusters, config)
+        # Generate the EQ Check mapping functions
+        if config.eq_check:
+            GenEQCheckMappingFunc(func_str_list, clusters, config)
         # Generate reset state machine functions
         GenResetFunc(func_str_list, clusters, config)
         # Generate event functions
@@ -73,6 +78,9 @@ class GenFunctions(TemplateBase):
         GenNetworkFunc(func_str_list, clusters,  config)
         # Generate the message construction functions
         GenMessageConstrFunc(func_str_list, clusters,  config)
+        # Generate the EQ Check comparison functions
+        if config.eq_check:
+            GenEQCheckComparisonFunc(func_str_list, clusters, config)
 
         # Generate litmus testing cpu cache access functions
         GenLitmusFunc(func_str_list, config)

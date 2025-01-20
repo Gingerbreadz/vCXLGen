@@ -105,6 +105,24 @@ class MurphiTemplates:
     f_scalar_mapping = "Types/scalar_mapping.m"
     f_scalar_m_mapping_for = "Types/scalar_m_mapping_for.m"
 
+    # EQ Check
+    f_eq_mappings = "EQCheck/map_lhs_to_rhs_outer.m"
+    f_eq_mappings_inner = "EQCheck/map_lhs_to_rhs_inner.m"
+    f_eq_x_mappings = "EQCheck/map_xlhs_to_rhs.m"
+    f_eq_msg_func = "EQCheck/eq_msg_func.m"
+    f_eq_global_state = "EQCheck/eq_global_state.m"
+    f_eq_global_rules = "EQCheck/eq_global_rules.m"
+    f_eq_global_state_association = "EQCheck/global_state_association.m"
+    f_eq_check_invariant = "EQCheck/eq_check_invariant.m"
+    f_eq_same_ob = "EQCheck/eq_check_same_ob.m"
+
+    f_eq_queue_equal = "EQCheck/queue/equal.m"
+    f_eq_queue_in_fixable = "EQCheck/queue/rhs_in_fixable.m"
+    f_eq_queue_out_fixable = "EQCheck/queue/rhs_out_fixable.m"
+    f_eq_queue_copy = "EQCheck/queue/copy.m"
+    f_eq_queue_send_missing = "EQCheck/queue/send_missing.m"
+
+
     # Reset functions
     f_machine_reset_body = "ResetFunc/MachineResetBody.m"
     f_fifo_reset_body = "ResetFunc/ResetBody.m"

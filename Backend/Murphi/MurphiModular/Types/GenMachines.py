@@ -56,7 +56,11 @@ class GenMachines(TemplateHandler, Debug):
             machines = set(cluster.system_tuple)
             archs.update(set([machine.arch for machine in machines]))
 
+        arch_names = set()
         for arch in archs:
+            if config.eq_check and str(arch) in arch_names:
+                continue
+            arch_names.add(str(arch))
             arch_str = self.gen_machine_entry(arch, config)
             arch_str += self.gen_machine_event_queue(arch, config)
             arch_str += self.gen_machine_instance(arch)

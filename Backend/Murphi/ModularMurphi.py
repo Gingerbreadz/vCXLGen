@@ -101,7 +101,7 @@ class ModularMurphi(TemplateHandler, Debug):
         # Generate the network ruleset
         GenRules(murphi_out, self.clusters, self.base_config)
         # Generate the initial state by calling the reset function
-        GenStartStates(murphi_out)
+        GenStartStates(murphi_out, self.base_config)
         # Generate the invariants
         GenInvariant(murphi_out, self.base_config)
 

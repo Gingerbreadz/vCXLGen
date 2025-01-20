@@ -31,6 +31,7 @@ from typing import List
 from DataObjects.ClassCluster import Cluster
 
 from Backend.Murphi.MurphiModular.Rules.GenNetworkRule import GenNetworkRule
+from Backend.Murphi.MurphiModular.Rules.GenEqGlobalStateRule import GenEqGlobalStateRule
 from Backend.Murphi.MurphiModular.Rules.GenAccessRuleSet import GenAccessRuleSet
 from Backend.Murphi.MurphiModular.Rules.GenEventRuleSet import GenEventRuleSet
 from Backend.Murphi.MurphiModular.Rules.GenCPULitmusRule import GenCPULitmusRule
@@ -59,6 +60,10 @@ class GenRules(TemplateBase):
 
         # Generate the network ruleset
         GenNetworkRule(rules_str_list, clusters, config)
+
+        # Generate the eq check ruleset if applicable
+        if config.eq_check:
+            GenEqGlobalStateRule(rules_str_list, config)
 
         # Add tabs to support sublime section hiding
         murphi_str.append("--" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(rules_str_list), 1) + self.nl)

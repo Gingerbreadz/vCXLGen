@@ -125,9 +125,13 @@ class GenNetworkRule(TemplateHandler, Debug):
             for arch_str in architecture_list:
                 ruleset_str_list.append("-- " + arch_str + self.nl)
 
+                conditions = ""
+                if config.eq_check:
+                    conditions += '& continue_run(to_m_'+ str(arch_str) +'(n), g_system_state)' + " "
+        
                 for network_str in ordered_network_list:
                     ruleset_str_list.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_rule),
-                                                            [network_str, arch_str])
+                                                            [network_str, arch_str, conditions])
                                         + self.nl)
                 ruleset_str_list.append(self.nl)
             

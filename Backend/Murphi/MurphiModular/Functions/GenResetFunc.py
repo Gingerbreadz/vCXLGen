@@ -48,9 +48,13 @@ class GenResetFunc(TemplateHandler, Debug):
 
         ruleset_str_list = []
 
+        archs = set()
         if config.substitute_unions:
             for cluster in clusters:
                 for arch in cluster.get_machine_architectures():
+                    if str(arch) in archs:
+                        continue
+                    archs.add(str(arch))
                     count = cluster.get_machine_architecture_count(arch)
                     if count > 1:
                         ruleset_str_list.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_scalar_mapping),
@@ -67,7 +71,11 @@ class GenResetFunc(TemplateHandler, Debug):
             machines = set(cluster.system_tuple)
             arch_set.update(set([machine.arch for machine in machines]))
 
+        archs = set()
         for arch in arch_set:
+            if str(arch) in archs:
+                continue
+            archs.add(str(arch))
             ruleset_str_list.append(self.gen_machine_reset(arch, config))
 
         ruleset_str_list.append(self.add_tabs(self.gen_global_machine_reset(clusters, arch_set, config), 1))
@@ -125,6 +133,8 @@ class GenResetFunc(TemplateHandler, Debug):
                         arch_reset_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_scalar_mapping_reset),
                                         [str(arch), MurphiTokens.k_obj_set, MurphiTokens.k_sm])
 
+        if config.eq_check:
+            arch_reset_str += self.nl + "g_system_state := systemLHS" + self.end
 
         return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_reset_func),
                                     [MurphiTokens.k_reset_machines, arch_reset_str])

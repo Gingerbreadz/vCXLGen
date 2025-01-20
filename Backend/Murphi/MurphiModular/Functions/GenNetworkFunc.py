@@ -108,11 +108,27 @@ class GenNetworkFunc(TemplateHandler, Debug):
                         send_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_send), [str(net), str(arch)])
                         pop_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_pop), [str(net), str(arch)])
 
+                send_end_body_str = ""
+                pop_end_body_str = ""
+                if config.eq_check:
+                    send_end_body_str += "if is_machine_in_state(src, systemLHSExt) then" + self.nl
+                    send_end_body_str += self.tab + self.tab + "Send_" + str(net) + "(map_LHS_msg_to_RHS(msg), map_LHS_to_RHS(src))" + self.end
+                    send_end_body_str += self.tab + self.tab + "BackupRHS()" + self.end
+                    send_end_body_str += self.tab + "endif" + self.end
+                    pop_end_body_str += "if is_machine_in_state(dst, systemLHSExt) then" + self.nl
+                    pop_end_body_str += self.tab + self.tab + "Pop_" + str(net) + "(map_LHS_to_RHS(dst), map_LHS_to_RHS(src))" + self.end
+                    pop_end_body_str += self.tab + self.tab + "BackupRHS()" + self.end
+                    pop_end_body_str += self.tab + "endif" + self.end
+
+                    
+
                 network_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func),
                                                             [str(net),
                                                             MurphiTokens.k_machines,
                                                             send_body_str,
-                                                            pop_body_str]) \
+                                                            pop_body_str,
+                                                            send_end_body_str,
+                                                            pop_end_body_str]) \
                                     + self.nl + self.nl
 
         return network_str
@@ -138,7 +154,12 @@ class GenNetworkFunc(TemplateHandler, Debug):
     def _multicast_gen_level(self, clusters: List[Cluster], config: BaseConfig) -> str:
         multicast_str_list: List[str] = []
 
+        archs = set()
         for arch in Cluster.get_machine_architectures_in_clusters(clusters):
+            if config.eq_check:
+                if str(arch).replace("RHS", "LHS") in archs:
+                    continue
+                archs.add(str(arch).replace("RHS", "LHS"))
             # Dict[variable_str, network_str]
             multi_cast_dict = MultiDict()
 
@@ -249,8 +270,9 @@ class GenNetworkFunc(TemplateHandler, Debug):
         # Substituted request network for network. All networks must be ready to serve a response to an issued request
         for network in networks:
             if str(network) in network_names:
-                Debug.pwarning("Multiple networks have same name and identifiers. This could potentially lead to "
-                               "deadlocks if this was not desired when designing the system")
+                if (not config.eq_check):
+                    Debug.pwarning("Multiple networks have same name and identifiers. This could potentially lead to "
+                                   "deadlocks if this was not desired when designing the system")
                 continue
 
             network_names.append(str(network))
@@ -269,6 +291,26 @@ class GenNetworkFunc(TemplateHandler, Debug):
                                                           [str(network), MurphiTokens.k_vector_cnt,
                                                            MurphiTokens.c_ordered_const, str(subtraction_cnt)]) \
                                      + self.nl
+            elif config.eq_check:
+                assert config.enable_total_order_network
+                bodyLHS_str = ""
+                bodyRHS_str = ""
+
+                archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
+                for arch in archs:
+                    body_str = "for dst:OBJSET_" + arch + " do" + self.nl + \
+                        self.tab + "if cnt_" + str(network) + "_" + arch + "[dst] >= (" + MurphiTokens.c_ordered_const + "-" + str(subtraction_cnt) + ") then" + self.nl + \
+                        self.tab + self.tab + "return false" + self.end + \
+                        self.tab + "endif" + self.end + "endfor" + self.end
+                    if "LHS" in arch:
+                        bodyLHS_str += body_str
+                    else:
+                        bodyRHS_str += body_str
+                
+                network_ready_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_ready),
+                                                          [str(network) + "_LHS", self.add_tabs(bodyLHS_str, 1)])
+                network_ready_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_ready),
+                                                          [str(network) + "_RHS", self.add_tabs(bodyRHS_str, 1)])
             else:
                 assert config.enable_total_order_network
                 body_str = ""
@@ -283,18 +325,24 @@ class GenNetworkFunc(TemplateHandler, Debug):
                 network_ready_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_ready),
                                                           [str(network), self.add_tabs(body_str, 1)]) \
 
+        if config.eq_check:
+            return network_ready_str + self.gen_global_check_network_ready_func(networks, "_LHS") + self.gen_global_check_network_ready_func(networks, "_RHS") + self.nl
 
 
         return network_ready_str + self.gen_global_check_network_ready_func(networks) + self.nl
 
-    def gen_global_check_network_ready_func(self, networks: Set[Channel]):
+    def gen_global_check_network_ready_func(self, networks: Set[Channel], side: str = ""):
         global_network_ready_inner = ""
+        nets = set()
         for network in networks:
+            if str(network) in nets:
+                continue
+            nets.add(str(network))
             global_network_ready_inner += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_network_ready_inner),
-                                                               [str(network)]) + self.nl
+                                                               [str(network)+side]) + self.nl
 
         return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_network_ready_outer),
-                                    [global_network_ready_inner]) + self.nl
+                                    [global_network_ready_inner, side]) + self.nl
 
     @staticmethod
     def filter_request_networks_by_channel(clusters: List[Cluster]) -> Tuple[Set[Channel], Set[Channel]]:

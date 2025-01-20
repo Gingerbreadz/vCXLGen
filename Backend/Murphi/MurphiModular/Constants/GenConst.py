@@ -58,7 +58,7 @@ class GenConst(TemplateHandler, Debug):
 
         const_str = self.gen_static_const_str(config)
         const_str += self.gen_network_const_str(config)
-        const_str += self.gen_dyn_const_str(clusters)
+        const_str += self.gen_dyn_const_str(clusters, config)
 
         const_str = self.add_tabs(const_str, 1)
         const_str = "--" + __name__.replace('.','/') + self.nl + const_str
@@ -90,11 +90,15 @@ class GenConst(TemplateHandler, Debug):
 
         return const_str
 
-    def gen_dyn_const_str(self, clusters: List[Cluster]):
+    def gen_dyn_const_str(self, clusters: List[Cluster], config: BaseConfig):
         const_str = "---- SSP declaration constants" + self.nl
-
+        
+        constant_names = set()
         for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
             for constant_name in global_arch.constants.const_dict:
+                if config.eq_check and constant_name in constant_names:
+                    continue
+                constant_names.add(constant_name)
                 const_val = str(global_arch.constants.const_dict[constant_name])
                 self.perror("Constant definition is not integer", const_val.isdigit())
                 const_str += self.tab + constant_name + ": " + const_val + self.end

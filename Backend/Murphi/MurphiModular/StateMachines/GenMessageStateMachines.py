@@ -64,13 +64,23 @@ class GenMessageStateMachines(TemplateBase, Debug):
             machines = set(cluster.system_tuple)
             arch_set.update(set([machine.arch for machine in machines]))
 
+        arch_names = set()
         for arch in arch_set:
+            if str(arch) in arch_names:
+                continue
+            arch_names.add(str(arch))
             self.arch_local_var_dict[arch] = GenMurphiRevTree(cluster, arch, config, True)
             func_str = (self.gen_state_machine_graph(arch))
             if config.substitute_unions:
                 # TODO: Hacky solution, please fix
                 import re
-                func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", func_str)
+                if config.eq_check:
+                    if "LHS" in func_str:
+                        func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2LHS_0", func_str)
+                    else:
+                        func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2RHS_0", func_str)
+                else:
+                    func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", func_str)
 
                 fsm_msg_str_list.append(self._gen_mach_func_header(arch, MurphiTokens.v_m_mach, "alias m : to_m_" + str(arch) + "("+MurphiTokens.v_m_mach+") do" + self.nl) + func_str + self._gen_mach_func_end("endalias" + self.end)
                                             + self.nl)

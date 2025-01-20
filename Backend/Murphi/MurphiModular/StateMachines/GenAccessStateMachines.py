@@ -63,8 +63,8 @@ class GenAccessStateMachines(TemplateBase):
             machines = set(cluster.system_tuple)
 
             for arch in sorted(set([machine.arch for machine in machines]), key=lambda x: str(x)):
-                if arch in arch_set: continue
-                else: arch_set.add(arch)
+                if str(arch) in arch_set: continue
+                else: arch_set.add(str(arch))
                 access_fsm_str_list.append(self.gen_state_machine_graph2(cluster, arch, config))
 
         murphi_str.append("----" + __name__.replace('.', '/') + self.nl + "".join(access_fsm_str_list))
@@ -105,7 +105,13 @@ class GenAccessStateMachines(TemplateBase):
                 if config.substitute_unions:
                     # TODO: Hacky solution, please fix
                     import re
-                    access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", access_func_str)
+                    if config.eq_check:
+                        if "LHS" in access_func_str:
+                            access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2LHS_0", access_func_str)
+                        else:
+                            access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2RHS_0", access_func_str)
+                    else:
+                        access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", access_func_str)
                     access_func_str = "alias m : to_m_" + str(arch) + "("+MurphiTokens.v_m_mach+") do" + self.nl + access_func_str + "endalias" + self.end
 
                     access_str += (self._gen_access_func_header(arch, state, guard, gen_murphi_tree, MurphiTokens.v_m_mach) +

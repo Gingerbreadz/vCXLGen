@@ -58,7 +58,11 @@ class GenAccessRuleSet(TemplateHandler, Debug):
             machines = set(cluster.system_tuple)
             arch_set.update(set([machine.arch for machine in machines]))
 
+        arch_names = set()
         for arch in arch_set:
+            if config.eq_check and str(arch) in arch_names:
+                continue
+            arch_names.add(str(arch))
             ruleset_str = self.gen_access_rules_str(arch, config)
             if not ruleset_str:
                 continue
@@ -95,9 +99,14 @@ class GenAccessRuleSet(TemplateHandler, Debug):
         aux_checks_str = ""
         lock_func_str = ""
 
+        if config.eq_check:
+            aux_checks_str += '& continue_run(to_m_'+ str(arch) +'(m), g_system_state)' + " "
+            if self.check_out_msg(transitions):
+                aux_checks_str += '& network_'+ ("LHS" if "LHS" in str(arch) else "RHS") +"_ready()"
         # Check if the network is free and can accept messages
-        if self.check_out_msg(transitions):
+        elif self.check_out_msg(transitions):
             aux_checks_str += '& ' + MurphiTokens.f_network_ready + " "
+
 
         if config.atomic_events:
             if AtomicEvent().check_atomic_event(arch, transitions):

@@ -47,11 +47,13 @@ class GenVars(TemplateHandler):
 
         var_str = "--" + __name__.replace('.','/') + self.nl
 
+        if config.eq_check:
+            var_str += self.tab + MurphiTokens.k_system_state + ": SystemStates" + self.nl
         if config.substitute_unions:
             var_str += self.gen_scalar_maps(clusters)
         var_str += self.gen_network(clusters, config)
         var_str += self.gen_access(config)
-        var_str += self.gen_machine_instances(clusters)
+        var_str += self.gen_machine_instances(clusters, config)
 
         var_str += self.gen_litmus_cpu_var(config)
 
@@ -94,14 +96,16 @@ class GenVars(TemplateHandler):
                     archs.add(str(arch))
                     for net in nets:
                         network_str += self.gen_named_ordered_network(str(arch), net)
+                        if config.eq_check and "RHS" in str(arch):
+                            network_str += self.gen_named_ordered_network(str(arch), net, "_BKUP")
                     network_str += self.nl
 
 
         return network_str + self.nl + fifo_str + self.nl
 
-    def gen_named_ordered_network(self, name: str, ordered_network: Channel) -> str:
-        o_net = self.tab + str(ordered_network) + "_" + name + ": " + MurphiTokens.k_net + name + self.end
-        o_net += (self.tab + MurphiTokens.k_vector_cnt + str(ordered_network) + "_" + name + ": " +
+    def gen_named_ordered_network(self, name: str, ordered_network: Channel, name_suffix : str = "") -> str:
+        o_net = self.tab + str(ordered_network) + "_" + name + name_suffix + ": " + MurphiTokens.k_net + name + self.end
+        o_net += (self.tab + MurphiTokens.k_vector_cnt + str(ordered_network) + "_" + name + name_suffix + ": " +
                   MurphiTokens.k_net + name + "_cnt" + self.end)
         return o_net
 
@@ -125,14 +129,22 @@ class GenVars(TemplateHandler):
             access_str += self.tab + self._openTemplate(MurphiTemplates.f_store_monitor_var) + self.nl
         return access_str
 
-    def gen_machine_instances(self, clusters: List[Cluster]) -> str:
+    def gen_machine_instances(self, clusters: List[Cluster], config:BaseConfig) -> str:
         arch_inst_str = ""
         archs = set()
         for cluster in clusters:
             archs.update(set(machine.arch for machine in cluster.system_tuple))
 
+        arch_names = set()
         for arch in archs:
+            if config.eq_check and str(arch) in arch_names:
+                continue
+            arch_names.add(str(arch))
             arch_inst_str += (self.tab + MurphiTokens.k_instance + str(arch) + ": " +
+                                  MurphiTokens.k_object + str(arch) + self.end)
+            
+            if config.eq_check and "RHS" in str(arch):
+                arch_inst_str += (self.tab + MurphiTokens.k_instance + str(arch) + "_BKUP: " +
                                   MurphiTokens.k_object + str(arch) + self.end)
 
         return arch_inst_str
