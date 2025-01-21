@@ -48,7 +48,9 @@ class GenVars(TemplateHandler):
         var_str = "--" + __name__.replace('.','/') + self.nl
 
         if config.eq_check:
-            var_str += self.tab + MurphiTokens.k_system_state + ": SystemStates" + self.nl
+            var_str += self.tab + MurphiTokens.k_system_state + ": SystemStates" + self.end
+        if config.eq_check_progress:
+            var_str += self.tab + "g_progress_tracking: boolean" + self.end
         if config.substitute_unions:
             var_str += self.gen_scalar_maps(clusters)
         var_str += self.gen_network(clusters, config)
@@ -125,6 +127,7 @@ class GenVars(TemplateHandler):
     def gen_access(self, config: BaseConfig):
         access_str = self.tab + self._stringReplKeys(self._openTemplate(MurphiTemplates.f_perm_var), [MurphiTokens.k_perm_type]) \
                + self.nl
+        
         if config.enable_read_write_execution and not config.litmus_testing:
             access_str += self.tab + self._openTemplate(MurphiTemplates.f_store_monitor_var) + self.nl
         return access_str

@@ -86,9 +86,9 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                         systems.append(rhs_system)
             eq_rhs_clusters.append(Cluster(tuple(systems), 'C2_RHS', False))
 
-    ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQ_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()|{"eq_check_live":False}))
+    ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQ_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()|{"eq_check_progress":False}))
 
-    ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQL_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()))
+    ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQP_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()))
 
     return murphi_desc, def_path
 

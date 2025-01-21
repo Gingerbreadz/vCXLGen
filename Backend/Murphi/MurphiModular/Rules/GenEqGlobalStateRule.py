@@ -41,7 +41,7 @@ class GenEqGlobalStateRule(TemplateHandler):
         TemplateHandler.__init__(self)
 
         if config.eq_check:
-            rule_str = self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_global_rules),
+            rule_str = self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eqp_global_rules if config.eq_check_progress else MurphiTemplates.f_eq_global_rules),
                                            []) + self.nl + self.nl
 
             # Add tabs to support sublime section hiding

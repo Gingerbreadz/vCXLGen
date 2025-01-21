@@ -85,7 +85,7 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
         # functions += self.gen_repl(systemStateAssoc, config)
 
         functions += self.tab + "----" + __name__.replace('.','/') +  " : GlobalStateManagementFunctions" + self.nl
-        template = MurphiTemplates.f_eq_global_state
+        template = MurphiTemplates.f_eqp_global_state if config.eq_check_progress else MurphiTemplates.f_eq_global_state
         functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
                                                           []), 2) + self.nl
 

@@ -116,6 +116,9 @@ class MurphiTemplates:
     f_eq_check_invariant = "EQCheck/eq_check_invariant.m"
     f_eq_same_ob = "EQCheck/eq_check_same_ob.m"
 
+    f_eqp_global_state = "EQCheck/eqp_global_state.m"
+    f_eqp_global_rules = "EQCheck/eqp_global_rules.m"
+
     f_eq_queue_equal = "EQCheck/queue/equal.m"
     f_eq_queue_in_fixable = "EQCheck/queue/rhs_in_fixable.m"
     f_eq_queue_out_fixable = "EQCheck/queue/rhs_out_fixable.m"

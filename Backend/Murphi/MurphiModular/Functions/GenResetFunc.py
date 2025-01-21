@@ -135,6 +135,8 @@ class GenResetFunc(TemplateHandler, Debug):
 
         if config.eq_check:
             arch_reset_str += self.nl + "g_system_state := systemLHS" + self.end
+        if config.eq_check_progress:
+            arch_reset_str += self.nl + "g_progress_tracking := false" + self.end
 
         return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_reset_func),
                                     [MurphiTokens.k_reset_machines, arch_reset_str])

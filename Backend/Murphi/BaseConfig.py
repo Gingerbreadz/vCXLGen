@@ -88,7 +88,7 @@ class BaseConfig(Debug):
     eq_lhs = ""
     eq_rhs = ""
 
-    eq_check_live = False
+    eq_check_progress = False
 
     # Configurations for individual machines
     machine_configs : List[MachineConfig] = []
@@ -135,7 +135,7 @@ class BaseConfig(Debug):
             self.eq_check = config["eq_check"]
             self.eq_rhs = config["eq_rhs"]
             self.eq_lhs = config["eq_lhs"]
-            self.eq_check_live = config["eq_check_live"]
+            self.eq_check_progress = config["eq_check_progress"]
 
         if any([self.substitute_multisets, self.substitute_unions]) and not self.use_per_machine_queues:
             self.pwarning("Substituting Unions/Multisets might not work as intended with the default queues, consider using per_machine_queues")
@@ -205,5 +205,5 @@ class BaseConfig(Debug):
             "eq_check": True,
             "eq_lhs": "directoryL1LHS_0",
             "eq_rhs": "cacheL2RHS_1",
-            "eq_check_live": True
+            "eq_check_progress": True
         }
