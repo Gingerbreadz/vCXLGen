@@ -207,3 +207,14 @@ class BaseConfig(Debug):
             "eq_rhs": "cacheL2RHS_1",
             "eq_check_progress": True
         }
+    
+    def EqCheckDefaultInverse() -> dict:
+        return {
+            "use_per_machine_queues": True,
+            "substitute_unions": True,
+            "substitute_multisets": True,
+            "eq_check": True,
+            "eq_lhs": "cacheL2LHS_1",
+            "eq_rhs": "directoryL1RHS_0",
+            "eq_check_progress": True
+        }

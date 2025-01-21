@@ -84,10 +84,19 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
         # functions += self.tab + "----" + __name__.replace('.','/') +  " : ReplicationFunctions" + self.nl
         # functions += self.gen_repl(systemStateAssoc, config)
 
+        functions += self.tab + "----" + __name__.replace('.','/') +  " : RHS Restrictions" + self.nl
+        if "dir" in config.eq_rhs:
+            fn_inner = ""
+            for ch in ["req", "resp", "fwd"]:
+                fn_inner += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_no_msg_from),
+                                                            [config.eq_rhs.split("_")[0], ch, "m_" + config.eq_rhs, "systemRHS" ]), 2)
+            functions += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_same_ob),
+                                                          ["L1RHSDone", fn_inner]), 2) + self.nl
+        
         functions += self.tab + "----" + __name__.replace('.','/') +  " : GlobalStateManagementFunctions" + self.nl
         template = MurphiTemplates.f_eqp_global_state if config.eq_check_progress else MurphiTemplates.f_eq_global_state
         functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
-                                                          []), 2) + self.nl
+                                                          ["& L1RHSDone()" if ("dir" in config.eq_rhs) else ""]), 2) + self.nl
 
         murphi_str.append(functions)
     

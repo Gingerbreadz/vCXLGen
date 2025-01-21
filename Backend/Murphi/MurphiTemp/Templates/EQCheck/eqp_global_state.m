@@ -1,10 +1,12 @@
+# $0$ RHS restrictions
+#
 function can_switch_out_of(state : SystemStates) : boolean;
 begin
   if state = systemLHS then
     return true;
   elsif state = systemRHS then
     if !g_progress_tracking then
-      return sameOutputOB();
+      return sameOutputOB() $0$;
     else
       return true; -- we can always switch back
     endif;

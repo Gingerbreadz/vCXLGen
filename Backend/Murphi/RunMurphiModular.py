@@ -64,7 +64,7 @@ def _run_murphi_modular_base(clusters: List[Cluster],
     # TODO: find better way to put this
     ModularMurphi(clusters, "RMR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()))
 
-    # TODO: fix generation of eq check
+    # Directory subset Cache
     eq_lhs_clusters = []
     eq_rhs_clusters = []
     for cluster in clusters:
@@ -89,6 +89,33 @@ def _run_murphi_modular_base(clusters: List[Cluster],
     ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQ_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()|{"eq_check_progress":False}))
 
     ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQP_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()))
+
+    # Cache subset Directory
+
+    eq_rhs_clusters = []
+    eq_lhs_clusters = []
+    for cluster in clusters:
+        systems = []
+        for system in cluster.system_tuple:
+            lhs_system = copy.deepcopy(system)
+            lhs_system.arch.arch_name += "RHS"
+            systems.append(lhs_system)
+        eq_rhs_clusters.append(Cluster(tuple(systems), cluster.cluster_id + '_RHS', False))
+
+        if cluster.cluster_id == "C2":
+            systems = []
+            for system in cluster.system_tuple:
+                if not "L1" in system.arch.arch_name:
+                    lhs_system = copy.deepcopy(system)
+                    lhs_system.arch.arch_name += "LHS"
+                    systems.append(lhs_system)
+                    if "cacheL2" in system.arch.arch_name:
+                        systems.append(lhs_system)
+            eq_lhs_clusters.append(Cluster(tuple(systems), 'C2_LHS', False))
+
+    ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, "L2_EQ_L2sB_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()|{"eq_check_progress":False}))
+
+    ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, "L2_EQP_L2sB_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()))
 
     return murphi_desc, def_path
 

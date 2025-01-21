@@ -1,9 +1,11 @@
+# $0$ RHS restrictions
+#
 function can_switch_out_of(state : SystemStates) : boolean;
 begin
   if state = systemLHS then
     return true;
   elsif state = systemRHS then
-    return sameOutputOB();
+    return sameOutputOB() $0$;
   elsif state = systemLHSExt then
     return true;
   elsif state = systemRHSExt then

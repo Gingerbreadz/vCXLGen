@@ -124,6 +124,7 @@ class MurphiTemplates:
     f_eq_queue_out_fixable = "EQCheck/queue/rhs_out_fixable.m"
     f_eq_queue_copy = "EQCheck/queue/copy.m"
     f_eq_queue_send_missing = "EQCheck/queue/send_missing.m"
+    f_eq_queue_no_msg_from = "EQCheck/queue/no_msg_from.m"
 
 
     # Reset functions
