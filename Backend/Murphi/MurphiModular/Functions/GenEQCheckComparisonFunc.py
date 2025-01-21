@@ -28,6 +28,7 @@
 
 from typing import List, Dict
 
+from Backend.Murphi.MurphiModular.RumurHelper import RumurHelper
 from DataObjects.ClassCluster import Cluster
 
 from Backend.Murphi.BaseConfig import BaseConfig
@@ -150,9 +151,13 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
             obstr += "alias elem : from_m_" + config.eq_lhs.split("_")[0] + "(m_" + config.eq_lhs + ") do" + self.nl
             
             for ch in channels:
-                obstr += self.add_tabs(self._stringReplKeys(self._openTemplate(template_in),
+                if RumurHelper.has_arch_net(config.eq_lhs, ch, config) and RumurHelper.has_arch_net(config.eq_rhs, ch, config):
+                    obstr += self.add_tabs(self._stringReplKeys(self._openTemplate(template_in),
                                                                 [config.eq_lhs.split("_")[0], config.eq_rhs.split("_")[0], "systemLHSExt", "systemRHSExt", ch]), 1) + self.nl
-
+                elif RumurHelper.has_arch_net(config.eq_lhs, ch, config):
+                    obstr += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_no_msg_from),
+                                                            [config.eq_lhs.split("_")[0], ch, "m_" + config.eq_lhs, "systemLHSExt"]), 1) + self.nl
+                    
             obstr += "endalias" + self.end + self.nl
 
         # Check each output, i.e. the LHS_Ext
@@ -162,7 +167,8 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
                 obstr += "alias elem : from_m_" + elem.split("_")[0] + "(m_" + elem + ") do" + self.nl
             
                 for ch in channels:
-                    obstr += self.add_tabs(self._stringReplKeys(self._openTemplate(template_out),
+                    if RumurHelper.has_arch_net(elem, ch, config):
+                        obstr += self.add_tabs(self._stringReplKeys(self._openTemplate(template_out),
                                                                     [elem.split("_")[0], elem.split("_")[0].replace("LHS", "RHS"), "systemLHS", "systemRHS", ch]), 1) + self.nl
 
                 obstr += "endalias" + self.end + self.nl
@@ -178,7 +184,8 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
         restr += "alias elem : from_m_" + config.eq_lhs.split("_")[0] + "(m_" + config.eq_lhs + ") do" + self.nl
         
         for ch in channels:
-            restr += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_send_missing),
+            if RumurHelper.has_arch_net(config.eq_lhs, ch, config) and RumurHelper.has_arch_net(config.eq_rhs, ch, config):
+                restr += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_send_missing),
                                                             [config.eq_lhs.split("_")[0], config.eq_rhs.split("_")[0], "systemLHSExt", "systemRHSExt", ch]), 1) + self.nl
 
         restr += "endalias" + self.end + self.nl
@@ -190,7 +197,8 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
             restr += "alias elem_rhs : map_" + elem.split("_")[0] + "_to_" + elem.split("_")[0].replace("LHS", "RHS") + "(elem) do" + self.nl
         
             for ch in channels:
-                restr += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_copy),
+                if RumurHelper.has_arch_net(elem, ch, config):
+                    restr += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_copy),
                                                                 [elem.split("_")[0], elem.split("_")[0].replace("LHS", "RHS"), "elem", "elem_rhs", ch, "map_LHS_msg_to_RHS"]), 1) + self.nl
 
             restr += "endalias" + self.end + self.nl

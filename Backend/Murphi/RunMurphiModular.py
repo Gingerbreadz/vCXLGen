@@ -47,7 +47,8 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                              filename: str,
                              litmus_test: Union[LitmusTest, None] = None,
                              run_SSP: bool = False,
-                             custom_dir: str = ''
+                             custom_dir: str = '',
+                             eq_checks: bool = False
                              ) -> Tuple[ModularMurphi, str]:
     def_path = os.getcwd()
 
@@ -64,58 +65,79 @@ def _run_murphi_modular_base(clusters: List[Cluster],
     # TODO: find better way to put this
     ModularMurphi(clusters, "RMR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()))
 
-    # Directory subset Cache
-    eq_lhs_clusters = []
-    eq_rhs_clusters = []
-    for cluster in clusters:
-        systems = []
-        for system in cluster.system_tuple:
-            rhs_system = copy.deepcopy(system)
-            rhs_system.arch.arch_name += "LHS"
-            systems.append(rhs_system)
-        eq_lhs_clusters.append(Cluster(tuple(systems), cluster.cluster_id + '_LHS', False))
-
-        if cluster.cluster_id == "C2":
+    if eq_checks:
+        # Directory subset Cache
+        eq_lhs_clusters = []
+        eq_rhs_clusters = []
+        for cluster in clusters:
             systems = []
+            names = set()
             for system in cluster.system_tuple:
-                if not "L1" in system.arch.arch_name:
-                    rhs_system = copy.deepcopy(system)
-                    rhs_system.arch.arch_name += "RHS"
+                rhs_system = copy.deepcopy(system)
+                rhs_system.arch.arch_name += "LHS"
+                
+                if rhs_system.arch.arch_name not in names:
                     systems.append(rhs_system)
-                    if "cacheL2" in system.arch.arch_name:
+                    if "cacheL1" in system.arch.arch_name:
                         systems.append(rhs_system)
-            eq_rhs_clusters.append(Cluster(tuple(systems), 'C2_RHS', False))
+                    names.add(rhs_system.arch.arch_name)
+            eq_lhs_clusters.append(Cluster(tuple(systems), cluster.cluster_id + '_LHS', False))
 
-    ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQ_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()|{"eq_check_progress":False}))
+            if cluster.cluster_id == "C2":
+                systems = []
+                for system in cluster.system_tuple:
+                    if not "L1" in system.arch.arch_name:
+                        rhs_system = copy.deepcopy(system)
+                        rhs_system.arch.arch_name += "RHS"
 
-    ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQP_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()))
+                        if rhs_system.arch.arch_name not in names:
+                            systems.append(rhs_system)
+                            if "cacheL2" in system.arch.arch_name:
+                                systems.append(rhs_system)
+                            names.add(rhs_system.arch.arch_name)
+                            
+                eq_rhs_clusters.append(Cluster(tuple(systems), 'C2_RHS', False))
 
-    # Cache subset Directory
+        ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQ_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()|{"eq_check_progress":False}))
 
-    eq_rhs_clusters = []
-    eq_lhs_clusters = []
-    for cluster in clusters:
-        systems = []
-        for system in cluster.system_tuple:
-            lhs_system = copy.deepcopy(system)
-            lhs_system.arch.arch_name += "RHS"
-            systems.append(lhs_system)
-        eq_rhs_clusters.append(Cluster(tuple(systems), cluster.cluster_id + '_RHS', False))
+        ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "L2_EQP_BsL2_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()))
 
-        if cluster.cluster_id == "C2":
+        # Cache subset Directory
+
+        eq_rhs_clusters = []
+        eq_lhs_clusters = []
+        for cluster in clusters:
             systems = []
+            names = set()
             for system in cluster.system_tuple:
-                if not "L1" in system.arch.arch_name:
-                    lhs_system = copy.deepcopy(system)
-                    lhs_system.arch.arch_name += "LHS"
+                lhs_system = copy.deepcopy(system)
+                lhs_system.arch.arch_name += "RHS"
+                
+                if lhs_system.arch.arch_name not in names:
                     systems.append(lhs_system)
-                    if "cacheL2" in system.arch.arch_name:
+                    if "cacheL1" in system.arch.arch_name:
                         systems.append(lhs_system)
-            eq_lhs_clusters.append(Cluster(tuple(systems), 'C2_LHS', False))
+                    names.add(lhs_system.arch.arch_name)
+            eq_rhs_clusters.append(Cluster(tuple(systems), cluster.cluster_id + '_RHS', False))
 
-    ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, "L2_EQ_L2sB_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()|{"eq_check_progress":False}))
+            if cluster.cluster_id == "C2":
+                systems = []
+                for system in cluster.system_tuple:
+                    if not "L1" in system.arch.arch_name:
+                        lhs_system = copy.deepcopy(system)
+                        lhs_system.arch.arch_name += "LHS"
 
-    ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, "L2_EQP_L2sB_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()))
+                        if lhs_system.arch.arch_name not in names:
+                            systems.append(lhs_system)
+                            if "cacheL2" in system.arch.arch_name:
+                                systems.append(lhs_system)
+                            names.add(lhs_system.arch.arch_name)
+                            
+                eq_lhs_clusters.append(Cluster(tuple(systems), 'C2_LHS', False))
+
+        ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, "L2_EQ_L2sB_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()|{"eq_check_progress":False}))
+
+        ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, "L2_EQP_L2sB_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()))
 
     return murphi_desc, def_path
 
@@ -161,10 +183,11 @@ def GenerateMurphi(clusters: List[Cluster],
                   filename: str,
                   litmus_test: Union[LitmusTest, None] = None,
                   custom_dir: str = '',
-                  run_SSP: bool = False
+                  run_SSP: bool = False,
+                  eq_checks: bool = False
                   ):
 
-    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir)
+    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir, eq_checks=eq_checks)
     sleep(0.10)
 
     murphi_desc.gen_make()

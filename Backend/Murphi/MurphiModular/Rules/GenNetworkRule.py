@@ -28,6 +28,7 @@
 
 from typing import List, Tuple
 
+from Backend.Murphi.MurphiModular.RumurHelper import RumurHelper
 from DataObjects.ClassCluster import Cluster
 
 from Backend.Murphi.BaseConfig import BaseConfig
@@ -130,7 +131,8 @@ class GenNetworkRule(TemplateHandler, Debug):
                     conditions += '& continue_run(to_m_'+ str(arch_str) +'(n), g_system_state)' + " "
         
                 for network_str in ordered_network_list:
-                    ruleset_str_list.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_rule),
+                    if RumurHelper.has_arch_net(arch_str, network_str, config):
+                        ruleset_str_list.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_rule),
                                                             [network_str, arch_str, conditions])
                                         + self.nl)
                 ruleset_str_list.append(self.nl)

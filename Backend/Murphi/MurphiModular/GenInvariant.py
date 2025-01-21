@@ -41,6 +41,8 @@ class GenInvariant(MurphiTokens, TemplateHandler):
 
         if config.eq_check:
             murphi_str.append("--" + __name__.replace('.','/') + " : EqCheckLiveness" + self.nl + self.add_tabs(self.gen_eq_check_invariants(), 1))
+        if config.eq_check_progress:
+            murphi_str.append('liveness "can always track progress" g_system_state = systemRHS & g_progress_tracking;')
 
         murphi_str.append("--" + __name__.replace('.','/') + self.nl + self.add_tabs(self.gen_SWMR_invariant(config), 1))
 

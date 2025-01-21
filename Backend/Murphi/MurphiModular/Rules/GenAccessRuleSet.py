@@ -101,6 +101,11 @@ class GenAccessRuleSet(TemplateHandler, Debug):
 
         if config.eq_check:
             aux_checks_str += '& continue_run(to_m_'+ str(arch) +'(m), g_system_state)' + " "
+            if "cacheL1RHS" in str(arch):
+                aux_checks_str += "& (to_m_" + str(arch) + "(m) = m_" + str(arch) + "_0"
+                if config.eq_check_progress:
+                    aux_checks_str += " | g_progress_tracking"    
+                aux_checks_str += ") "
             if self.check_out_msg(transitions):
                 aux_checks_str += '& network_'+ ("LHS" if "LHS" in str(arch) else "RHS") +"_ready()"
         # Check if the network is free and can accept messages

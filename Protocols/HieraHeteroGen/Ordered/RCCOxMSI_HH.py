@@ -40,15 +40,15 @@ class RCCOxMSI_HH(RunHH, Debug):
     translation_table_first = {'load': ['acquire'], 'store': ['release']}                                       # RCC
     translation_table_second = {'load': ['load'], 'store': ['store'], 'acquire': ['load'], 'release': ['store']}  # MSI
 
-    def __init__(self):
+    def __init__(self, eq_checks = False):
         RunHH.__init__(self)
         Debug.__init__(self, True)
         self.sc_litmus_test_gen = MurphiLitmusTests.LitmusTests.SC.GenLitmusTests.GenLitmusTests()
         self.rc_litmus_test_gen = MurphiLitmusTests.LitmusTests.RC.GenLitmusTests.GenLitmusTests()
 
-        self.run_protocol_tests()
+        self.run_protocol_tests(eq_checks)
 
-    def run_protocol_tests(self):
+    def run_protocol_tests(self, eq_checks = False):
         path = OrderedReplyForwardingProtocols().get_cur_protocol_path()
         #protocol_1_name: str = "RCCOHetero.pcc"
         protocol_1_name: str = "RCCOHetero.pcc"
@@ -57,7 +57,7 @@ class RCCOxMSI_HH(RunHH, Debug):
         #protocol_2_name: str = "MSI.pcc"
         self.run_test(protocol_1_name, protocol_2_name, path,
                       [self.translation_table_first, self.translation_table_second],
-                      self.sc_litmus_test_gen.litmus_test_list, self.rc_litmus_test_gen.litmus_test_list)
+                      self.sc_litmus_test_gen.litmus_test_list, self.rc_litmus_test_gen.litmus_test_list, eq_checks=eq_checks)
         self.psuccess(f"HieraHeteroGen {protocol_1_name.split('.')[0]} x {protocol_2_name.split('.')[0]} execution complete")
 
     @staticmethod

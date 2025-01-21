@@ -77,6 +77,9 @@ class BaseConfig(Debug):
     # uses seperate queues for each machine, allowing for more flexibility, required for rumur
     use_per_machine_queues = False
 
+    # Removed channels that are not used, e.g. req of CC, if this optimitazion is invalid, the models will throw an error
+    remove_unused_channels = False
+
     # replaces unions with enums, this is required for interopability with rumur
     substitute_unions = False
 
@@ -131,6 +134,8 @@ class BaseConfig(Debug):
             self.substitute_unions = config["substitute_unions"]
         if "substitute_multisets" in config:
             self.substitute_multisets = config["substitute_multisets"]
+        if "remove_unused_channels" in config:
+            self.remove_unused_channels = config["remove_unused_channels"]
         if "eq_check" in config:
             self.eq_check = config["eq_check"]
             self.eq_rhs = config["eq_rhs"]
@@ -193,15 +198,13 @@ class BaseConfig(Debug):
         return {
             "use_per_machine_queues": True,
             "substitute_unions": True,
-            "substitute_multisets": True
+            "substitute_multisets": True,
+            "remove_unused_channels": True
         }
 
     ## Returns a dictionary that can be passes as the config to the BaseConfig constructor to setup the default equivalence check configuration
     def EqCheckDefault() -> dict:
-        return {
-            "use_per_machine_queues": True,
-            "substitute_unions": True,
-            "substitute_multisets": True,
+        return BaseConfig.RumurDefault() | {
             "eq_check": True,
             "eq_lhs": "directoryL1LHS_0",
             "eq_rhs": "cacheL2RHS_1",
@@ -209,10 +212,7 @@ class BaseConfig(Debug):
         }
     
     def EqCheckDefaultInverse() -> dict:
-        return {
-            "use_per_machine_queues": True,
-            "substitute_unions": True,
-            "substitute_multisets": True,
+        return BaseConfig.RumurDefault() | {
             "eq_check": True,
             "eq_lhs": "cacheL2LHS_1",
             "eq_rhs": "directoryL1RHS_0",

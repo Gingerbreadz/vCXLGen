@@ -64,7 +64,8 @@ class RunHH(Debug):
     def run_test(self, filename_1: str, filename_2: str, protocol_dir_path: str,
                  access_map_table: List[Dict[str, List[str]]],
                  litmus_test_list_1: Union[LitmusTest, List[LitmusTest], None] = None,
-                 litmus_test_list_2: Union[LitmusTest, List[LitmusTest], None] = None):
+                 litmus_test_list_2: Union[LitmusTest, List[LitmusTest], None] = None,
+                 eq_checks = False):
         os.chdir(protocol_dir_path)
         protocol_1 = open(filename_1).read()
         protocol_2 = open(filename_2).read()
@@ -107,7 +108,7 @@ class RunHH(Debug):
         #cluster_1.update_machine_archs(directory_machine_1.get_arch_list()[0], hhgen_ctrl)
         #cluster_2.update_machine_archs(hhcache_machine_2.get_arch_list()[0], hhgen_ctrl)
 
-        GenerateMurphi([cluster_1, cluster_2], 'HH_DeadlockFreedom', None)
+        GenerateMurphi([cluster_1, cluster_2], 'HH_DeadlockFreedom', None, eq_checks=eq_checks)
 
         #RunMurphiCheck([cluster_1], sys_name, None, 4000, 'DeadlockFreedom')
         #RunSLICCModular(cluster_1, sys_name)
