@@ -386,7 +386,7 @@ class GenAccessMessageMap(Debug):
                         if raccess != access:
                             relabel = True
                             # Generate new base message
-                            base_message = self.gen_new_base_message(cache_dir_tuple[1], access)
+                            #base_message = self.gen_new_base_message(cache_dir_tuple[1], access)
                             break
  
                 if relabel:

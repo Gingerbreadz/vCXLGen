@@ -118,7 +118,7 @@ class GenAccessRuleSet(TemplateHandler, Debug):
                 aux_checks_str += '& ' + AtomicEvent().gen_test_atomic_event_func(arch)
                 lock_func_str += AtomicEvent().gen_lock_atomic_event_func(arch)
 
-        return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_access_rule),
+        ret = self._stringReplKeys(self._openTemplate(MurphiTemplates.f_access_rule),
                                     [
                                         str(arch) + "_" + str(transitions[0].start_state),
                                         str(transitions[0].guard),
@@ -127,6 +127,11 @@ class GenAccessRuleSet(TemplateHandler, Debug):
                                         aux_checks_str,
                                         lock_func_str
                                     ]) + self.nl
+        
+        if config.eq_effective_mi_downgrade and "L2" in str(arch) and "load" in str(transitions[0].guard):
+            ret = "-- Impossible due to effective MI downgrade \n--" + ret.replace("\n", "\n--")
+
+        return ret
 
     @staticmethod
     def check_out_msg(transitions: List[Transition_v2]):

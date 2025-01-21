@@ -86,12 +86,16 @@ class BaseConfig(Debug):
     # replaces mutisets with arrays, this is required for interopability with rumur
     substitute_multisets = False
 
+    # Verifies liveness of L1 caches using access based properties
+    access_based_liveness = False
+
     # generates an equivalence check for the L2 layer, maps LHS & RHS, maps LHS dir to RHS cache
     eq_check = False
     eq_lhs = ""
     eq_rhs = ""
 
     eq_check_progress = False
+    eq_effective_mi_downgrade = False
 
     # Configurations for individual machines
     machine_configs : List[MachineConfig] = []
@@ -136,6 +140,10 @@ class BaseConfig(Debug):
             self.substitute_multisets = config["substitute_multisets"]
         if "remove_unused_channels" in config:
             self.remove_unused_channels = config["remove_unused_channels"]
+        if "eq_effective_mi_downgrade" in config:
+            self.eq_effective_mi_downgrade = config["eq_effective_mi_downgrade"]
+        if "access_based_liveness" in config:
+            self.access_based_liveness = config["access_based_liveness"]
         if "eq_check" in config:
             self.eq_check = config["eq_check"]
             self.eq_rhs = config["eq_rhs"]
@@ -208,7 +216,8 @@ class BaseConfig(Debug):
             "eq_check": True,
             "eq_lhs": "directoryL1LHS_0",
             "eq_rhs": "cacheL2RHS_1",
-            "eq_check_progress": True
+            "eq_check_progress": True,
+            "eq_effective_mi_downgrade": True
         }
     
     def EqCheckDefaultInverse() -> dict:
@@ -216,5 +225,6 @@ class BaseConfig(Debug):
             "eq_check": True,
             "eq_lhs": "cacheL2LHS_1",
             "eq_rhs": "directoryL1RHS_0",
-            "eq_check_progress": True
+            "eq_check_progress": True,
+            "eq_effective_mi_downgrade": True
         }

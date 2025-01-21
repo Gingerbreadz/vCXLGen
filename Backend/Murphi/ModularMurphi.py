@@ -103,7 +103,7 @@ class ModularMurphi(TemplateHandler, Debug):
         # Generate the initial state by calling the reset function
         GenStartStates(murphi_out, self.base_config)
         # Generate the invariants
-        GenInvariant(murphi_out, self.base_config)
+        GenInvariant(murphi_out, self.clusters, self.base_config)
 
     def safe_to_file(self, murphi_str: str):
         file_name = self.file_name.split(".")[0] + ".m"

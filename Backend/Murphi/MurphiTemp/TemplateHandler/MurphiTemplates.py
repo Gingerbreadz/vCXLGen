@@ -128,6 +128,7 @@ class MurphiTemplates:
     f_eq_queue_send_missing = "EQCheck/queue/send_missing.m"
     f_eq_queue_no_msg_from = "EQCheck/queue/no_msg_from.m"
 
+    f_access_based_liveness = "access_based_liveness.m"
 
     # Reset functions
     f_machine_reset_body = "ResetFunc/MachineResetBody.m"

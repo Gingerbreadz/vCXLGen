@@ -32,17 +32,27 @@ from Backend.Murphi.MurphiModular.MurphiTokens import MurphiTokens
 from Backend.Common.TemplateHandler.TemplateHandler import TemplateHandler
 from Backend.Murphi.MurphiTemp.TemplateHandler.MurphiTemplates import MurphiTemplates
 from Backend.Murphi.BaseConfig import BaseConfig
+from DataObjects.ClassCluster import Cluster
 
 
 class GenInvariant(MurphiTokens, TemplateHandler):
 
-    def __init__(self, murphi_str: List[str], config: BaseConfig):
+    def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateHandler.__init__(self)
 
         if config.eq_check:
             murphi_str.append("--" + __name__.replace('.','/') + " : EqCheckLiveness" + self.nl + self.add_tabs(self.gen_eq_check_invariants(), 1))
         if config.eq_check_progress:
             murphi_str.append('liveness "can always track progress" g_system_state = systemRHS & g_progress_tracking;')
+        if config.access_based_liveness:
+            archs = set()
+            for cluster in clusters:
+                for arch in cluster.get_machine_architectures():
+                    if str(arch) not in archs and "L1" in str(arch) and "cache" in str(arch):
+                        archs.add(str(arch))
+                        mach_count = cluster.get_machine_architecture_count(arch)
+                        for i in range(mach_count):
+                            murphi_str.append(self.gen_access_based_liveness(str(arch) + "_" + str(i)))
 
         murphi_str.append("--" + __name__.replace('.','/') + self.nl + self.add_tabs(self.gen_SWMR_invariant(config), 1))
 
@@ -67,3 +77,7 @@ class GenInvariant(MurphiTokens, TemplateHandler):
     def gen_eq_check_invariants(self):
         return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_check_invariant),
                                     []) + self.nl
+
+    def gen_access_based_liveness(self, elem: str):
+        return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_access_based_liveness),
+                                    [elem]) + self.nl
