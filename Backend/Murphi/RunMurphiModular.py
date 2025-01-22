@@ -50,6 +50,7 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                              custom_dir: str = '',
                              eq_checks: bool = False,
                              full_sys: bool = False,
+                             cc_num=2
                              ) -> Tuple[ModularMurphi, str]:
     def_path = os.getcwd()
 
@@ -72,7 +73,7 @@ def _run_murphi_modular_base(clusters: List[Cluster],
 
     if eq_checks:
         # Rumur version for the compositional verification, with abstractions on L2 & access based litmus tests for each L1
-        ModularMurphi(clusters, "COMP_Model", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"eq_effective_mi_downgrade":True, "access_based_liveness":True}))
+        ModularMurphi(clusters, f"COMP_Model_{cc_num}CC", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"eq_effective_mi_downgrade":True, "access_based_liveness":True}))
 
         # Directory subset Cache
         eq_lhs_clusters = []
@@ -87,7 +88,8 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                 if rhs_system.arch.arch_name not in names:
                     systems.append(rhs_system)
                     if "cacheL1" in system.arch.arch_name:
-                        systems.append(rhs_system)
+                        for i in range(1, cc_num):
+                            systems.append(rhs_system)
                     names.add(rhs_system.arch.arch_name)
             eq_lhs_clusters.append(Cluster(tuple(systems), cluster.cluster_id + '_LHS', False))
 
@@ -106,9 +108,9 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                             
                 eq_rhs_clusters.append(Cluster(tuple(systems), 'C2_RHS', False))
 
-        ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "COMP_EQ_BsL2", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()|{"eq_check_progress":False}))
+        ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, f"COMP_EQ_BsL2_{cc_num}CC", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()|{"eq_check_progress":False}))
 
-        ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, "COMP_EQP_BsL2", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()))
+        ModularMurphi(eq_lhs_clusters + eq_rhs_clusters, f"COMP_EQP_BsL2_{cc_num}CC", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefault()))
 
         # Cache subset Directory
 
@@ -124,7 +126,8 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                 if lhs_system.arch.arch_name not in names:
                     systems.append(lhs_system)
                     if "cacheL1" in system.arch.arch_name:
-                        systems.append(lhs_system)
+                        for i in range(1, cc_num):
+                            systems.append(lhs_system)
                     names.add(lhs_system.arch.arch_name)
             eq_rhs_clusters.append(Cluster(tuple(systems), cluster.cluster_id + '_RHS', False))
 
@@ -143,9 +146,9 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                             
                 eq_lhs_clusters.append(Cluster(tuple(systems), 'C2_LHS', False))
 
-        ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, "COMP_EQ_L2sB_", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()|{"eq_check_progress":False}))
+        ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, f"COMP_EQ_L2sB_{cc_num}CC", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()|{"eq_check_progress":False}))
 
-        ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, "COMP_EQP_L2sB_", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()))
+        ModularMurphi(eq_rhs_clusters + eq_lhs_clusters, f"COMP_EQP_L2sB_{cc_num}CC", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.EqCheckDefaultInverse()))
 
     return murphi_desc, def_path
 
@@ -193,10 +196,11 @@ def GenerateMurphi(clusters: List[Cluster],
                   custom_dir: str = '',
                   run_SSP: bool = False,
                   eq_checks: bool = False,
-                  full_sys: bool = False
+                  full_sys: bool = False,
+                  cc_num=2
                   ):
 
-    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir, eq_checks=eq_checks, full_sys=full_sys)
+    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir, eq_checks=eq_checks, full_sys=full_sys, cc_num=cc_num)
     sleep(0.10)
 
     murphi_desc.gen_make()
