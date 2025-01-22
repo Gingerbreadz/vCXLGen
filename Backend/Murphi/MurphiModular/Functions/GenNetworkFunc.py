@@ -74,6 +74,7 @@ class GenNetworkFunc(TemplateHandler, Debug):
     def gen_ordered_send_func(self, clusters: List[Cluster], config: BaseConfig):
         network_str = ""
         if not config.use_per_machine_queues:
+            network_functions = set()
             for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
 
                 # Total order network or point to point ordered network
@@ -82,12 +83,14 @@ class GenNetworkFunc(TemplateHandler, Debug):
                     ord_net_func = MurphiTemplates.f_ordered_network_func
 
                 for ordered_network in global_arch.network.ordered_networks:
-                    network_str += self._stringReplKeys(self._openTemplate(ord_net_func),
+                    network_func = self._stringReplKeys(self._openTemplate(ord_net_func),
                                                         [str(ordered_network),
                                                         MurphiTokens.k_vector_cnt,
                                                         MurphiTokens.c_ordered_const,
-                                                        MurphiTokens.k_machines]) \
-                                + self.nl + self.nl
+                                                        MurphiTokens.k_machines])
+                    if network_func not in network_functions:
+                        network_functions.add(network_func)
+                        network_str += network_func + self.nl + self.nl
         else:
             if not config.enable_total_order_network:
                 self.perror("Per machine queues are only implemented for total ordered networks")

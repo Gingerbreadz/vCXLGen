@@ -48,7 +48,8 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                              litmus_test: Union[LitmusTest, None] = None,
                              run_SSP: bool = False,
                              custom_dir: str = '',
-                             eq_checks: bool = False
+                             eq_checks: bool = False,
+                             full_sys: bool = False,
                              ) -> Tuple[ModularMurphi, str]:
     def_path = os.getcwd()
 
@@ -60,10 +61,14 @@ def _run_murphi_modular_base(clusters: List[Cluster],
     make_dir(path)
 
     # Generate Murphi file description
-    murphi_desc = ModularMurphi(clusters, filename, False, litmus_test)
+    murphi_desc = ModularMurphi(clusters, filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config={"full_sys": full_sys}))
 
     # Rumur version that should be as similar to MURPHI as possible
-    ModularMurphi(clusters, "RMR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"remove_unused_channels":False}))
+    ModularMurphi(clusters, "RMR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"remove_unused_channels":False, "full_sys": full_sys}))
+
+    if not eq_checks:
+        # Rumur version for the compositional verification, with abstractions on L2 & access based litmus tests for each L1
+        ModularMurphi(clusters, "RMR_LIVE_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"access_based_liveness":True, "full_sys": full_sys}))
 
     if eq_checks:
         # Rumur version for the compositional verification, with abstractions on L2 & access based litmus tests for each L1
@@ -187,10 +192,11 @@ def GenerateMurphi(clusters: List[Cluster],
                   litmus_test: Union[LitmusTest, None] = None,
                   custom_dir: str = '',
                   run_SSP: bool = False,
-                  eq_checks: bool = False
+                  eq_checks: bool = False,
+                  full_sys: bool = False
                   ):
 
-    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir, eq_checks=eq_checks)
+    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir, eq_checks=eq_checks, full_sys=full_sys)
     sleep(0.10)
 
     murphi_desc.gen_make()

@@ -27,6 +27,8 @@
 #
 
 
+from collections import OrderedDict
+
 class TemplateBase:
 
     # Constant definitions
@@ -45,3 +47,6 @@ class TemplateBase:
             outstr += tabstring + line + self.nl
 
         return outstr
+    
+    def remove_dups(self, lines: str):
+        return "\n".join(list(OrderedDict.fromkeys(lines.split("\n"))))

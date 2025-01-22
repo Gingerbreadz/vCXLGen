@@ -54,7 +54,7 @@ class GenMessageConstrFunc(GenDataTypes, TemplateHandler, Debug):
         msg_types = set()
         for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
                 for msg_type in global_arch.network.msg_types:
-                    if config.eq_check and msg_type in msg_types:
+                    if config.remove_dups() and msg_type in msg_types:
                         continue
                     msg_types.add(msg_type)
                     custom_msg_call_str, custom_msg_constr_str = \

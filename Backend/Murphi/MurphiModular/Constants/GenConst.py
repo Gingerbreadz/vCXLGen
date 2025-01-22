@@ -96,7 +96,7 @@ class GenConst(TemplateHandler, Debug):
         constant_names = set()
         for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
             for constant_name in global_arch.constants.const_dict:
-                if config.eq_check and constant_name in constant_names:
+                if config.remove_dups() and constant_name in constant_names:
                     continue
                 constant_names.add(constant_name)
                 const_val = str(global_arch.constants.const_dict[constant_name])

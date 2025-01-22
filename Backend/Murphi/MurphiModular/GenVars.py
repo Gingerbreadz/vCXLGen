@@ -85,6 +85,9 @@ class GenVars(TemplateHandler):
                                                                 unordered_network])
                     if config.enable_fifo:
                         fifo_str += self.gen_fifo(global_arch.network.unordered_networks[unordered_network])
+            if config.remove_dups():
+                network_str = self.remove_dups(network_str)
+                fifo_str = self.remove_dups(fifo_str)
         else:
             assert not config.enable_fifo # Not handled currently
             archs = set() 
@@ -103,7 +106,6 @@ class GenVars(TemplateHandler):
                             if config.eq_check and "RHS" in str(arch):
                                 network_str += self.gen_named_ordered_network(str(arch), net, "_BKUP")
                     network_str += self.nl
-
 
         return network_str + self.nl + fifo_str + self.nl
 

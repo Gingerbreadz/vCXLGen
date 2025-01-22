@@ -100,6 +100,9 @@ class BaseConfig(Debug):
     # Configurations for individual machines
     machine_configs : List[MachineConfig] = []
 
+    # Enable to apply fixes for a full system check
+    full_sys = False
+
     def __init__(self,  clusters: List[Cluster], litmus_test: Union[LitmusTest, None] = None, config = {}, machine_configs: List[MachineConfig] = []):
         Debug.__init__(self)
 
@@ -144,6 +147,8 @@ class BaseConfig(Debug):
             self.eq_effective_mi_downgrade = config["eq_effective_mi_downgrade"]
         if "access_based_liveness" in config:
             self.access_based_liveness = config["access_based_liveness"]
+        if "full_sys" in config:
+            self.full_sys = config["full_sys"]
         if "eq_check" in config:
             self.eq_check = config["eq_check"]
             self.eq_rhs = config["eq_rhs"]
@@ -201,6 +206,11 @@ class BaseConfig(Debug):
 
         return total_mach_cnt
     
+    ## Whether the backend should remove duplicates of variables
+    ## This assumes all duplicates are identical
+    def remove_dups(self) -> bool:
+        return self.eq_check | self.full_sys
+
     ## Returns a dictionary that can be passes as the config to the BaseConfig constructor to setup the default rumur configuration
     def RumurDefault() -> dict:
         return {
