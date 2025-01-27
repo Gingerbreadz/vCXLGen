@@ -33,19 +33,53 @@ from Backend.Murphi.MurphiModular.MurphiTokens import MurphiTokens
 from Backend.Common.TemplateHandler.TemplateHandler import TemplateHandler
 from Backend.Murphi.MurphiTemp.TemplateHandler.MurphiTemplates import MurphiTemplates
 
+from DataObjects.ClassCluster import Cluster
 from Debug.Monitor.ClassDebug import Debug
 
 
 class GenPermFunc(TemplateHandler, Debug):
 
-    def __init__(self, murphi_str: List[str], config: BaseConfig):
+    def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateHandler.__init__(self)
         Debug.__init__(self)
 
         access_type = "----" + __name__.replace('.','/') + self.nl
-        template = MurphiTemplates.f_perm_func if not config.substitute_multisets else MurphiTemplates.f_perm_func_arr
-        access_type += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
-                                                          [MurphiTokens.k_perm_type,
-                                                           MurphiTokens.k_address,
-                                                           MurphiTokens.k_machines]), 1) + self.nl
+
+        if not config.use_mrecords:
+            template = MurphiTemplates.f_perm_func if not config.substitute_multisets else MurphiTemplates.f_perm_func_arr
+            access_type += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
+                                                            [MurphiTokens.k_perm_type,
+                                                            MurphiTokens.k_address,
+                                                            MurphiTokens.k_machines]), 1) + self.nl
+        else:
+            clear_str = ""
+            set_str = ""
+            reset_str = ""
+
+            archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
+            for arch in archs:
+                if "cache" in arch:
+                    clear_str += "if !isundefined(m."+arch+") then" + self.nl
+                    clear_str += self.tab + "g_perm." + arch + "[m."+arch+"][adr][acc] := false" + self.end
+                    clear_str += "endif" + self.end
+
+                    set_str += "if !isundefined(m."+arch+") then" + self.nl
+                    set_str += self.tab + "g_perm." + arch + "[m."+arch+"][adr][acc] := true" + self.end
+                    set_str += "endif" + self.end
+
+                    reset_str += "for o : " + MurphiTokens.k_obj_set + arch + " do" + self.nl
+                    reset_str += self.tab + "g_perm." + arch + "[o][adr][acc] := false" + self.end
+                    reset_str += "endfor" + self.end
+
+                    
+            access_type += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_perm_func_mrecord),
+                                                            [MurphiTokens.k_perm_type,
+                                                            MurphiTokens.k_address,
+                                                            MurphiTokens.k_machines,
+                                                            self.add_tabs(clear_str, 2),
+                                                            self.add_tabs(set_str, 1),
+                                                            self.add_tabs(reset_str, 3),
+                                                            ]), 1) + self.nl
+        
+
         murphi_str.append(access_type)

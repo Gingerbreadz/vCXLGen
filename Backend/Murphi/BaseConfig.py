@@ -83,6 +83,10 @@ class BaseConfig(Debug):
     # replaces unions with enums, this is required for interopability with rumur
     substitute_unions = False
 
+    # use a record for the union of machine types
+    use_mrecords = False
+    mrecords_vector = {}
+    
     # replaces mutisets with arrays, this is required for interopability with rumur
     substitute_multisets = False
 
@@ -147,6 +151,8 @@ class BaseConfig(Debug):
             self.eq_effective_mi_downgrade = config["eq_effective_mi_downgrade"]
         if "access_based_liveness" in config:
             self.access_based_liveness = config["access_based_liveness"]
+        if "use_mrecords" in config:
+            self.use_mrecords = config["use_mrecords"]
         if "full_sys" in config:
             self.full_sys = config["full_sys"]
         if "eq_check" in config:

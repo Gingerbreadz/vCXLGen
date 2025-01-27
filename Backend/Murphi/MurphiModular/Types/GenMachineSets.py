@@ -80,31 +80,49 @@ class GenMachineSets(TemplateBase):
         return mach_set_str
 
     def gen_cluster_set(self, cluster: Cluster, mach_cnt_dict: Dict[str, Union[int, str]], config: BaseConfig) -> str:
-        cluster_set_str = str(cluster) + MurphiTokens.k_machines 
-        if not config.substitute_unions:
-            cluster_set_str += ": union{"
-            for mach in mach_cnt_dict:
-                cluster_set_str += MurphiTokens.k_obj_set + str(mach) + ", "
-        else: # Use enums if "substitute_unions"
-            cluster_set_str += ": enum{"
-            for mach in mach_cnt_dict:
-                for i in range(mach_cnt_dict[mach]):
-                    cluster_set_str += MurphiTokens.k_m_set + str(cluster) + "_" + str(mach) + f"_{i}, "
+        cluster_set_str = str(cluster) + MurphiTokens.k_machines
+        if not config.use_mrecords: 
+            if not config.substitute_unions:
+                cluster_set_str += ": union{"
+                for mach in mach_cnt_dict:
+                    cluster_set_str += MurphiTokens.k_obj_set + str(mach) + ", "
+            else: # Use enums if "substitute_unions"
+                cluster_set_str += ": enum{"
+                for mach in mach_cnt_dict:
+                    for i in range(mach_cnt_dict[mach]):
+                        cluster_set_str += MurphiTokens.k_m_set + str(cluster) + "_" + str(mach) + f"_{i}, "
 
-        cluster_set_str = cluster_set_str[:cluster_set_str.rfind(",")]
-        return cluster_set_str + "}" + self.end
+            cluster_set_str = cluster_set_str[:cluster_set_str.rfind(",")]
+            return cluster_set_str + "}" + self.end
+        else:
+            cluster_set_str += ": record" + self.nl
+            for mach in mach_cnt_dict:
+                cluster_set_str += self.tab + str(mach) + ": " + MurphiTokens.k_obj_set + str(mach) + self.end
+
+            return cluster_set_str + "end" + self.end
 
     def gen_mach_set(self,  mach_cnt_dict: Dict[str, Union[int, str]], config: BaseConfig):
-        mach_set_str = MurphiTokens.k_machines 
-        if not config.substitute_unions:
-            mach_set_str += ": union{"
-            for mach in mach_cnt_dict:
-                mach_set_str += MurphiTokens.k_obj_set + str(mach) + ", "
-        else: # Use enums if "substitute_unions"
-            mach_set_str += ": enum{"
-            for mach in mach_cnt_dict:
-                for i in range(mach_cnt_dict[mach]):
-                    mach_set_str += MurphiTokens.k_m_set + str(mach) + f"_{i}, "
+        mach_set_str = MurphiTokens.k_machines
+        if not config.use_mrecords: 
+            if not config.substitute_unions:
+                mach_set_str += ": union{"
+                for mach in mach_cnt_dict:
+                    mach_set_str += MurphiTokens.k_obj_set + str(mach) + ", "
+            else: # Use enums if "substitute_unions"
+                mach_set_str += ": enum{"
+                for mach in mach_cnt_dict:
+                    for i in range(mach_cnt_dict[mach]):
+                        mach_set_str += MurphiTokens.k_m_set + str(mach) + f"_{i}, "
 
-        mach_set_str = mach_set_str[:mach_set_str.rfind(",")]
-        return mach_set_str + "}" + self.end
+            mach_set_str = mach_set_str[:mach_set_str.rfind(",")]
+            return mach_set_str + "}" + self.end
+        else:
+            mach_set_str += ": record" + self.nl
+            for mach in mach_cnt_dict:
+                mach_set_str += self.tab + str(mach) + ": " + MurphiTokens.k_obj_set + str(mach) + self.end
+
+            mach_set_str += "end" + self.end
+            
+            mach_set_str += "CntMachines: 0.." + str(sum([mach_cnt_dict[mach] for mach in mach_cnt_dict])) + self.end
+
+            return mach_set_str

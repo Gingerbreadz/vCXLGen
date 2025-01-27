@@ -61,7 +61,7 @@ class GenMachines(TemplateHandler, Debug):
             if config.eq_check and str(arch) in arch_names:
                 continue
             arch_names.add(str(arch))
-            arch_str = self.gen_machine_entry(arch, config)
+            arch_str = self.gen_machine_entry(arch, config, clusters)
             arch_str += self.gen_machine_event_queue(arch, config)
             arch_str += self.gen_machine_instance(arch)
             arch_str += self.gen_machine_objects(arch)
@@ -72,7 +72,7 @@ class GenMachines(TemplateHandler, Debug):
 
         murphi_str.append(mach_type_str)
 
-    def gen_machine_entry(self, arch: FlatArchitecture, config: BaseConfig) -> str:
+    def gen_machine_entry(self, arch: FlatArchitecture, config: BaseConfig, clusters: List[Cluster]) -> str:
         type_def_str = ""
         arch_str = MurphiTokens.k_entry + str(arch) + ": record" + self.nl
         arch_str += self.tab + MurphiTokens.k_state + ": " + MurphiTokens.k_state_label + str(arch) + self.end
@@ -90,6 +90,17 @@ class GenMachines(TemplateHandler, Debug):
             if not config.exist_vector_type(vector_def, self.arch_type_dict[arch].vector_defs[vector_def]):
                 if not config.substitute_multisets:
                     type_def_str += self.arch_type_dict[arch].vector_defs[vector_def]
+                elif config.use_mrecords:
+                    type_def_str += MurphiTokens.k_vector + vector_def + ": record" + self.nl
+                    config.mrecords_vector[vector_def] = set()
+                    for cluster in clusters:
+                        if arch in cluster.get_machine_architectures():
+                            for arch2 in cluster.get_machine_architectures():
+                                if arch != arch2:
+                                    config.mrecords_vector[vector_def].add(str(arch2))
+                                    type_def_str +=  self.tab + str(arch2) + ": array["+ MurphiTokens.k_obj_set + str(arch2) + "] of boolean" + self.end
+                    type_def_str += "end" + self.end
+                    type_def_str += self.arch_type_dict[arch].vector_defs[vector_def].split("\n",1)[1]
                 else:
                     type_def_str += MurphiTokens.k_vector + vector_def + ": array[Machines] of "+ MurphiTokens.t_bool + self.end
                     type_def_str += self.arch_type_dict[arch].vector_defs[vector_def].split("\n",1)[1]

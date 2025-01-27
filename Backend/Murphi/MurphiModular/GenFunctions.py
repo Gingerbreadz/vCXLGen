@@ -62,16 +62,16 @@ class GenFunctions(TemplateBase):
         # Generate the EQ Check mapping functions
         if config.eq_check:
             GenEQCheckMappingFunc(func_str_list, clusters, config)
-        # Generate reset state machine functions
-        GenResetFunc(func_str_list, clusters, config)
         # Generate event functions
         GenEventFunc(func_str_list, clusters, config)
         # Generate the access tracking functions
-        GenPermFunc(func_str_list, config)
+        GenPermFunc(func_str_list, clusters, config)
         # Generate the store monitor functions
         GenStoreFunc(func_str_list,  config)
         # Generate the vector handling functions
         GenVectorFunc(func_str_list,  config)
+        # Generate reset state machine functions
+        GenResetFunc(func_str_list, clusters, config)
         # Generate the FIFO functions if the system uses functions
         GenFIFOFunc(func_str_list, clusters,  config)
         # Generate the network functions

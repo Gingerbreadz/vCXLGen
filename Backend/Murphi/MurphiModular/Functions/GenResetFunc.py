@@ -107,8 +107,11 @@ class GenResetFunc(TemplateHandler, Debug):
             if str(arch.machine.variables[variable]) == ProtoParserBase.k_data:
                 data_init_str += base_var_str + str(variable) + " := 0" + self.end
             elif config.substitute_multisets and str(arch.machine.variables[variable]) == ProtoParserBase.t_id and "cache" in str(variable): # TODO: Hack idk how to differentiate between vector and owner
-                data_init_str += "for m : Machines do" + self.nl + self.tab + \
-                      base_var_str + str(variable) + "[m] := false" + self.end + "endfor" + self.end
+                if config.use_mrecords:
+                    data_init_str += "ClearVector_" + str(variable) + "(" + base_var_str + str(variable) + ")" + self.end
+                else:
+                    data_init_str += "for m : Machines do" + self.nl + self.tab + \
+                        base_var_str + str(variable) + "[m] := false" + self.end + "endfor" + self.end
             elif variable not in arch.machine.variables_init_val:
                 data_init_str += MurphiTokens.k_undefine + " " + base_var_str + str(variable) + self.end
         return data_init_str

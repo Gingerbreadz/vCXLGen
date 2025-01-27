@@ -28,7 +28,7 @@
 
 from typing import List, Dict
 
-from Backend.Murphi.MurphiModular.RumurHelper import RumurHelper
+from Backend.Murphi.MurphiModular.OptimizationHelper import OptimizationHelper
 from DataObjects.ClassCluster import Cluster
 
 from Backend.Murphi.BaseConfig import BaseConfig
@@ -154,7 +154,7 @@ class GenEQCheckMappingFunc(TemplateHandler, Debug):
                 bkstr += self.tab + self.tab + "i_"+machine+"_BKUP[elem] := i_"+ machine + "[elem]" + self.end + self.nl
                 
                 for ch in channels:
-                    if RumurHelper.has_arch_net(machine, ch, config):
+                    if OptimizationHelper.has_arch_net(machine, ch, config):
                         bkstr += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_copy),
                                                                 [machine, machine+"_BKUP", "elem", "elem", ch, ""]), 2) + self.nl
 
@@ -169,7 +169,7 @@ class GenEQCheckMappingFunc(TemplateHandler, Debug):
                 bkstr += self.tab + self.tab + "i_"+machine+"[elem] := i_"+ machine + "_BKUP[elem]" + self.end + self.nl
                 
                 for ch in channels:
-                    if RumurHelper.has_arch_net(machine, ch, config):
+                    if OptimizationHelper.has_arch_net(machine, ch, config):
                         bkstr += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_copy),
                                                                 [machine+"_BKUP", machine, "elem", "elem", ch, ""]), 2) + self.nl
 

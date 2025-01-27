@@ -28,7 +28,7 @@
 
 from typing import List
 
-from Backend.Murphi.MurphiModular.RumurHelper import RumurHelper
+from Backend.Murphi.MurphiModular.OptimizationHelper import OptimizationHelper
 from DataObjects.ClassCluster import Cluster
 
 from Parser.DataTypes.ClassBaseNetwork import Channel
@@ -101,7 +101,7 @@ class GenVars(TemplateHandler):
                         continue
                     archs.add(str(arch))
                     for net in nets:
-                        if RumurHelper.has_arch_net(str(arch), str(net), config):
+                        if OptimizationHelper.has_arch_net(str(arch), str(net), config):
                             network_str += self.gen_named_ordered_network(str(arch), net)
                             if config.eq_check and "RHS" in str(arch):
                                 network_str += self.gen_named_ordered_network(str(arch), net, "_BKUP")

@@ -28,7 +28,7 @@
 
 from typing import List, Set, Tuple
 
-from Backend.Murphi.MurphiModular.RumurHelper import RumurHelper
+from Backend.Murphi.MurphiModular.OptimizationHelper import OptimizationHelper
 from DataObjects.ClassCluster import Cluster
 from DataObjects.ClassMultiDict import MultiDict
 
@@ -109,12 +109,27 @@ class GenNetworkFunc(TemplateHandler, Debug):
                             continue
                         archs.add(str(arch))
 
-                        if RumurHelper.has_arch_net(str(arch), str(net), config):
-                            send_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_send), [str(net), str(arch)])
-                            pop_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_pop), [str(net), str(arch)])
+                        if not config.use_mrecords:
+                            check = "Ismember(dst,OBJSET_"+str(arch)+")"
+                            element = "dst"
+                            if config.substitute_unions:
+                                check = "isElement_"+str(arch)+"(dst)"
+                                element = "from_m_"+str(arch)+"(dst)"
+
+                            if OptimizationHelper.has_arch_net(str(arch), str(net), config):
+                                send_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_send), [str(net), str(arch), check, element])
+                                pop_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_pop), [str(net), str(arch), check, element])
+                            else:
+                                send_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_send_missing), [str(net), str(arch), check, element])
+                                pop_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_pop_missing), [str(net), str(arch), check, element])
                         else:
-                            send_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_send_missing), [str(net), str(arch)])
-                            pop_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_func_pop_missing), [str(net), str(arch)])
+                            if OptimizationHelper.has_arch_net(str(arch), str(net), config):
+                                send_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_mr_func_send), [str(net), str(arch)])
+                                pop_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_mr_func_pop), [str(net), str(arch)])
+                            else:
+                                send_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_mr_func_send_missing), [str(net), str(arch)])
+                                pop_body_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_mr_func_pop_missing), [str(net), str(arch)])
+                           
 
                 send_end_body_str = ""
                 pop_end_body_str = ""
@@ -186,20 +201,39 @@ class GenNetworkFunc(TemplateHandler, Debug):
 
         return ''.join(multicast_str_list)
 
-    def _multicast_func_gen(self, multicast_str_list: List[str], multi_cast_dict: MultiDict, cluster: List[Cluster], config: BaseConfig):
+    def _multicast_func_gen(self, multicast_str_list: List[str], multi_cast_dict: MultiDict, clusters: List[Cluster], config: BaseConfig):
         for network_name in multi_cast_dict:
             var_defs = set(multi_cast_dict[network_name])
             for var_def in var_defs:
-                template = MurphiTemplates.f_multicast_network_func
-                if config.substitute_multisets:
-                    template = MurphiTemplates.f_multicast_network_func_arr
-                multicast_str_list.append(
-                    self._stringReplKeys(self._openTemplate(template),
-                                                               [network_name,
-                                                                GenPCCToMurphi().gen_vector(var_def),
-                                                                GenPCCToMurphi().gen_vector(var_def),
-                                                                MurphiTokens.k_machines])
-                    + self.nl + self.nl)
+                if not config.use_mrecords:
+                    template = MurphiTemplates.f_multicast_network_func
+                    if config.substitute_multisets:
+                        template = MurphiTemplates.f_multicast_network_func_arr
+                    multicast_str_list.append(
+                        self._stringReplKeys(self._openTemplate(template),
+                                                                [network_name,
+                                                                    GenPCCToMurphi().gen_vector(var_def),
+                                                                    GenPCCToMurphi().gen_vector(var_def),
+                                                                    MurphiTokens.k_machines])
+                        + self.nl + self.nl)
+                else:
+                    body_str = ""
+                    for arch in config.mrecords_vector[var_def]:
+                        body_str += "for n : " + MurphiTokens.k_obj_set + arch + " do" + self.nl
+                        body_str += self.tab + "if IsElement_" + var_def + "(dst_vect, to_m_" + arch + "(n)) then" + self.nl
+                        body_str += self.tab + self.tab + "msg.dst := to_m_" + arch + "(n)" + self.end
+                        body_str += self.tab + self.tab + "Send_" + network_name + "(msg, src)" + self.end
+                        body_str += self.tab + "endif" + self.end
+                        body_str += "endfor" + self.end
+                    
+                    multicast_str_list.append(
+                        self._stringReplKeys(self._openTemplate(MurphiTemplates.f_multicast_network_func_mrecord),
+                                                                [network_name,
+                                                                    GenPCCToMurphi().gen_vector(var_def),
+                                                                    GenPCCToMurphi().gen_vector(var_def),
+                                                                    MurphiTokens.k_machines,
+                                                                    self.add_tabs(body_str, 1)])
+                        + self.nl + self.nl)
 
     ## Generate broadcast functions
     # @param A broadcast is only possible within the cluster
@@ -306,7 +340,7 @@ class GenNetworkFunc(TemplateHandler, Debug):
 
                 archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
                 for arch in archs:
-                    if RumurHelper.has_arch_net(arch, str(network), config):
+                    if OptimizationHelper.has_arch_net(arch, str(network), config):
                         body_str = "for dst:OBJSET_" + arch + " do" + self.nl + \
                             self.tab + "if cnt_" + str(network) + "_" + arch + "[dst] >= (" + MurphiTokens.c_ordered_const + "-" + str(subtraction_cnt) + ") then" + self.nl + \
                             self.tab + self.tab + "return false" + self.end + \
@@ -326,7 +360,7 @@ class GenNetworkFunc(TemplateHandler, Debug):
 
                 archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
                 for arch in archs:
-                    if RumurHelper.has_arch_net(arch, str(network), config):
+                    if OptimizationHelper.has_arch_net(arch, str(network), config):
                         body_str += "for dst:OBJSET_" + arch + " do" + self.nl + \
                             self.tab + "if cnt_" + str(network) + "_" + arch + "[dst] >= (" + MurphiTokens.c_ordered_const + "-" + str(subtraction_cnt) + ") then" + self.nl + \
                             self.tab + self.tab + "return false" + self.end + \
@@ -400,13 +434,13 @@ class GenNetworkFunc(TemplateHandler, Debug):
             archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
             for arch in archs:
                 for network in ordered_network_set:
-                    if RumurHelper.has_arch_net(arch, str(network), config):
+                    if OptimizationHelper.has_arch_net(arch, str(network), config):
                         body_str += "undefine " + str(network) + "_" + arch + self.end
 
                 body_str += "for dst:OBJSET_" + arch + " do" + self.nl
                 
                 for network in ordered_network_set:
-                    if RumurHelper.has_arch_net(arch, str(network), config):
+                    if OptimizationHelper.has_arch_net(arch, str(network), config):
                         body_str += self.tab + "cnt_" + str(network) + "_" + arch + "[dst] := 0" + self.end
                 
                 body_str += "endfor" + self.end + self.nl

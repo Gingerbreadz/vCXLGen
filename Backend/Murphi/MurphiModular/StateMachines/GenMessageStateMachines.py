@@ -71,16 +71,22 @@ class GenMessageStateMachines(TemplateBase, Debug):
             arch_names.add(str(arch))
             self.arch_local_var_dict[arch] = GenMurphiRevTree(cluster, arch, config, True)
             func_str = (self.gen_state_machine_graph(arch))
-            if config.substitute_unions:
+            if config.substitute_unions or config.use_mrecords:
                 # TODO: Hacky solution, please fix
                 import re
-                if config.eq_check:
-                    if "LHS" in func_str:
-                        func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2LHS_0", func_str)
+                if config.substitute_unions:
+                    if config.eq_check:
+                        if "LHS" in func_str:
+                            func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2LHS_0", func_str)
+                        else:
+                            func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2RHS_0", func_str)
                     else:
-                        func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2RHS_0", func_str)
+                        func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", func_str)
                 else:
-                    func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", func_str)
+                    if config.eq_check:
+                        assert False, "EQ CHECK with mrecords not yet implemented"
+                
+                    func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,to_m_directory\2(directory\2)", func_str)
 
                 fsm_msg_str_list.append(self._gen_mach_func_header(arch, MurphiTokens.v_m_mach, "alias m : to_m_" + str(arch) + "("+MurphiTokens.v_m_mach+") do" + self.nl) + func_str + self._gen_mach_func_end("endalias" + self.end)
                                             + self.nl)

@@ -2,7 +2,7 @@
 from Backend.Murphi.BaseConfig import BaseConfig
 
 
-class RumurHelper:
+class OptimizationHelper:
 
     def has_arch_net(arch: str, net: str, config: BaseConfig):
         if not config.remove_unused_channels:

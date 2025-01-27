@@ -45,6 +45,7 @@ endrule;
 rule "Track Progress"
   g_system_state = systemLHS
   & sameOutputOB()
+  & !g_progress_tracking
 ==>
   g_system_state := systemRHS;
   g_progress_tracking := true;

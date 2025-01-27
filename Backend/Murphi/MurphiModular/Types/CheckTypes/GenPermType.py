@@ -49,11 +49,25 @@ class GenPermType(TemplateHandler, Debug):
         for cluster in clusters:
             mach_cnt += len(cluster.system_tuple)
 
-        template = MurphiTemplates.f_perm_obj if not config.substitute_multisets else MurphiTemplates.f_perm_obj_arr
-        access_check_str = self._stringReplKeys(self._openTemplate(template),
-                                                [MurphiTokens.k_perm_type,
-                                                 str(len(BaseAccess.Access_str_list)+1),
-                                                 MurphiTokens.k_address,
-                                                 MurphiTokens.k_machines]) + self.nl
+        if not config.use_mrecords:
+            template = MurphiTemplates.f_perm_obj if not config.substitute_multisets else MurphiTemplates.f_perm_obj_arr
+            access_check_str = self._stringReplKeys(self._openTemplate(template),
+                                                    [MurphiTokens.k_perm_type,
+                                                    str(len(BaseAccess.Access_str_list)+1),
+                                                    MurphiTokens.k_address,
+                                                    MurphiTokens.k_machines]) + self.nl
+        else:
+            elem_str = ""
+
+            archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
+            for arch in archs:
+                if "cache" in arch:
+                    elem_str += self.tab + arch + ": array["+MurphiTokens.k_obj_set + arch + "] of array[Address] of acc_type_obj" + self.end
+
+            template = MurphiTemplates.f_perm_obj if not config.substitute_multisets else MurphiTemplates.f_perm_obj_mrecord
+            access_check_str = self._stringReplKeys(self._openTemplate(template),
+                                                    [MurphiTokens.k_perm_type,
+                                                    elem_str]) + self.nl
+
 
         murphi_str.append("------" + __name__.replace('.','/') + self.nl + self.add_tabs(access_check_str, 1) + self.nl)

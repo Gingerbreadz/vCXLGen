@@ -42,6 +42,8 @@ class MurphiTemplates:
     f_fifo_ruleset = "FIFO/FIFORuleset/fiforuleset.m"
     f_fifo_inner_rule = "FIFO/FIFORuleset/fifoinnerrule.m"
 
+    f_perm_obj_mrecord = "PermCheck/perm_obj_mrecord.m"
+    f_perm_func_mrecord = "PermCheck/perm_func_mrecord.m"
     f_perm_obj_arr = "PermCheck/perm_obj_arr.m"
     f_perm_func_arr = "PermCheck/perm_func_arr.m"
     f_perm_obj = "PermCheck/perm_obj.m"
@@ -61,6 +63,11 @@ class MurphiTemplates:
     f_pmq_tot_o_network_func_pop_missing = "Network/TotalOrdered/pmq_onetworkfunc_pop_missing.m"
     f_pmq_tot_o_network_ready = "Network/TotalOrdered/pmq_onetworkready.m"
     f_pmq_tot_o_rule = "Network/TotalOrdered/pmq_rule.m"
+
+    f_pmq_tot_o_mr_func_send = "Network/TotalOrdered/pmq_mr_onetworkfunc_send.m"
+    f_pmq_tot_o_mr_func_pop = "Network/TotalOrdered/pmq_mr_onetworkfunc_pop.m"
+    f_pmq_tot_o_mr_func_send_missing = "Network/TotalOrdered/pmq_mr_onetworkfunc_send_missing.m"
+    f_pmq_tot_o_mr_func_pop_missing = "Network/TotalOrdered/pmq_mr_onetworkfunc_pop_missing.m"
 
     f_ordered_network_func = "Network/Ordered/onetworkfunc.m"
     f_ordered_network_ready_func = "Network/Ordered/onetworkready.m"
@@ -88,10 +95,12 @@ class MurphiTemplates:
 
     f_multicast_network_func = "Network/multicastfunc.m"
     f_multicast_network_func_arr = "Network/multicastfunc_arr.m"
+    f_multicast_network_func_mrecord = "Network/multicastfunc_mrecord.m"
     f_broadcast_network_func = "Network/broadcastfunc.m"
 
     f_vector_func = "VectorFunc/vectorfunc.m"
     f_vector_func_arr = "VectorFunc/vectorfunc_arr.m"
+    f_vector_func_mrecord = "VectorFunc/vectorfunc_mrecord.m"
 
     f_access_rule_set = "RuleSet/AccessHandling/AccessRuleSet.m"
     f_access_rule = "RuleSet/AccessHandling/AccessRule.m"

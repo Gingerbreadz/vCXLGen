@@ -40,10 +40,11 @@ class GenInvariant(MurphiTokens, TemplateHandler):
     def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateHandler.__init__(self)
 
-        if config.eq_check:
-            murphi_str.append("--" + __name__.replace('.','/') + " : EqCheckLiveness" + self.nl + self.add_tabs(self.gen_eq_check_invariants(), 1))
         if config.eq_check_progress:
-            murphi_str.append('liveness "can always track progress" g_system_state = systemRHS & g_progress_tracking;')
+            murphi_str.append('  liveness "can always reproduce progress" g_system_state = systemLHS & !g_progress_tracking;\n')
+        elif config.eq_check:
+            murphi_str.append("--" + __name__.replace('.','/') + " : EqCheckLiveness" + self.nl + self.add_tabs(self.gen_eq_check_invariants(), 1))
+            murphi_str.append('  liveness "can always switch back to RHS" g_system_state = systemRHS;\n')
         if config.access_based_liveness:
             archs = set()
             for cluster in clusters:

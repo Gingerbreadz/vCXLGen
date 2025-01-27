@@ -64,8 +64,12 @@ def _run_murphi_modular_base(clusters: List[Cluster],
     # Generate Murphi file description
     murphi_desc = ModularMurphi(clusters, filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config={"full_sys": full_sys}))
 
+    ModularMurphi(clusters, "MU_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config={"use_per_machine_queues":True, "remove_unused_channels":True, "full_sys": full_sys}))
+
     # Rumur version that should be as similar to MURPHI as possible
-    ModularMurphi(clusters, "RMR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"remove_unused_channels":False, "full_sys": full_sys}))
+    ModularMurphi(clusters, "RMR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"full_sys": full_sys}))
+
+    ModularMurphi(clusters, "RMR_MR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"full_sys": full_sys, "use_mrecords": True, "substitute_unions": False}))
 
     if not eq_checks:
         # Rumur version for the compositional verification, with abstractions on L2 & access based litmus tests for each L1
