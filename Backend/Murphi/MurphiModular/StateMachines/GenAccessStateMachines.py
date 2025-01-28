@@ -115,7 +115,11 @@ class GenAccessStateMachines(TemplateBase):
                             access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", access_func_str)
                     else:
                         if config.eq_check:
-                            assert False, "EQ CHECK with mrecords not yet implemented"
+                            if "LHS" in access_func_str:
+                                access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,to_m_directory\2LHS(directory\2LHS)", access_func_str)
+                            else:
+                                access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(L2\w*)", r"\1m,to_m_directory\2RHS(directory\2LHS)", access_func_str)
+                                access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(L1\w*)", r"\1m,to_m_directory\2RHS(directory\2RHS)", access_func_str)
                 
                         access_func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,to_m_directory\2(directory\2)", access_func_str)
                     access_func_str = "alias m : to_m_" + str(arch) + "("+MurphiTokens.v_m_mach+") do" + self.nl + access_func_str + "endalias" + self.end

@@ -28,6 +28,7 @@
 
 from typing import List, Dict
 
+from Backend.Murphi.MurphiModular.EqCheckHelper import EqCheckHelper
 from DataObjects.ClassCluster import Cluster
 from DataObjects.Architecture.ClassFlatArchitecture import FlatArchitecture
 from DataObjects.Transitions.ClassTransitionv2 import Transition_v2
@@ -63,6 +64,8 @@ class GenAccessRuleSet(TemplateHandler, Debug):
             if config.eq_check and str(arch) in arch_names:
                 continue
             arch_names.add(str(arch))
+            if config.use_mrecords and config.eq_check and EqCheckHelper.get_machine_state(str(arch), config) == "systemRHSExt":
+                continue
             ruleset_str = self.gen_access_rules_str(arch, config)
             if not ruleset_str:
                 continue
@@ -100,9 +103,15 @@ class GenAccessRuleSet(TemplateHandler, Debug):
         lock_func_str = ""
 
         if config.eq_check:
-            aux_checks_str += '& continue_run(to_m_'+ str(arch) +'(m), g_system_state)' + " "
+            if config.use_mrecords:
+                aux_checks_str += '& continue_run('+ EqCheckHelper.get_machine_state(str(arch), config) +', g_system_state)' + " "
+            else:
+                aux_checks_str += '& continue_run(to_m_'+ str(arch) +'(m), g_system_state)' + " "
             if "cacheL1RHS" in str(arch):
-                aux_checks_str += "& (to_m_" + str(arch) + "(m) = m_" + str(arch) + "_0"
+                if not config.use_mrecords:
+                    aux_checks_str += "& (to_m_" + str(arch) + "(m) = m_" + str(arch) + "_0"
+                else:
+                    aux_checks_str += "& (active_" + str(arch) + "(m, adr)"
                 if config.eq_check_progress:
                     aux_checks_str += " | g_progress_tracking"    
                 aux_checks_str += ") "
@@ -128,7 +137,7 @@ class GenAccessRuleSet(TemplateHandler, Debug):
                                         lock_func_str
                                     ]) + self.nl
         
-        if config.eq_effective_mi_downgrade and "L2" in str(arch) and "load" in str(transitions[0].guard):
+        if config.eq_effective_mi_downgrade and ("L2" in str(arch) or "abstraction" in str(arch)) and "load" in str(transitions[0].guard):
             ret = "-- Impossible due to effective MI downgrade \n--" + ret.replace("\n", "\n--")
 
         return ret

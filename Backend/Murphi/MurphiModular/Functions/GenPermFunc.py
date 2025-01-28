@@ -80,6 +80,15 @@ class GenPermFunc(TemplateHandler, Debug):
                                                             self.add_tabs(set_str, 1),
                                                             self.add_tabs(reset_str, 3),
                                                             ]), 1) + self.nl
-        
+            
+            if config.access_based_liveness:
+                archs = set()
+                for cluster in clusters:
+                    for arch in cluster.get_machine_architectures():
+                        if str(arch) not in archs and "L1" in str(arch) and "cache" in str(arch) and cluster.get_machine_architecture_count(arch) > 1:
+                            archs.add(str(arch))
+    
+                            access_type += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_mr_liveness_func),
+                                                            [str(arch)]), 1) + self.nl    
 
         murphi_str.append(access_type)

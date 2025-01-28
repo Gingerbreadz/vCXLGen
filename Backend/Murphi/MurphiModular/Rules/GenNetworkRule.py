@@ -28,6 +28,7 @@
 
 from typing import List, Tuple
 
+from Backend.Murphi.MurphiModular.EqCheckHelper import EqCheckHelper
 from Backend.Murphi.MurphiModular.OptimizationHelper import OptimizationHelper
 from DataObjects.ClassCluster import Cluster
 
@@ -126,9 +127,15 @@ class GenNetworkRule(TemplateHandler, Debug):
             for arch_str in architecture_list:
                 ruleset_str_list.append("-- " + arch_str + self.nl)
 
+                if config.use_mrecords and config.eq_check and EqCheckHelper.get_machine_state(arch_str, config) == "systemRHSExt":
+                    continue
+
                 conditions = ""
                 if config.eq_check:
-                    conditions += '& continue_run(to_m_'+ str(arch_str) +'(n), g_system_state)' + " "
+                    if config.use_mrecords:
+                        conditions += '& continue_run('+ EqCheckHelper.get_machine_state(str(arch_str), config) +', g_system_state)' + " "
+                    else:
+                        conditions += '& continue_run(to_m_'+ str(arch_str) +'(n), g_system_state)' + " "
 
                 element = "n"
                 if config.substitute_multisets or config.substitute_unions:

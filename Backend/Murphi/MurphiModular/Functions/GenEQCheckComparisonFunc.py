@@ -28,6 +28,7 @@
 
 from typing import List, Dict
 
+from Backend.Murphi.MurphiModular.EqCheckHelper import EqCheckHelper
 from Backend.Murphi.MurphiModular.OptimizationHelper import OptimizationHelper
 from DataObjects.ClassCluster import Cluster
 
@@ -48,9 +49,9 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
         functions = "----" + __name__.replace('.','/') + self.nl
 
         systemStates = ["systemLHS", "systemRHS", "systemLHSExt", "systemRHSExt"]
-        machines = self.get_machines(clusters)
-        machineTypes = self.get_machine_types(clusters)
-        systemStateAssoc = self.get_state_assoc(systemStates, machines, config)
+        machines = EqCheckHelper.get_machines(clusters)
+        machineTypes = EqCheckHelper.get_machine_types(clusters)
+        systemStateAssoc = EqCheckHelper.get_state_assoc(systemStates, machines, config)
 
         # template = MurphiTemplates.f_eq_global_state_association
         # functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
@@ -89,57 +90,37 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
         if "dir" in config.eq_rhs:
             fn_inner = ""
             for ch in ["req", "resp", "fwd"]:
-                fn_inner += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_no_msg_from),
-                                                            [config.eq_rhs.split("_")[0], ch, "m_" + config.eq_rhs, "systemRHS" ]), 2)
+                template = MurphiTemplates.f_eq_queue_no_msg_from
+                elem = "m_" + config.eq_rhs
+                if config.use_mrecords:
+                    template = MurphiTemplates.f_eq_mr_queue_no_msg_from
+                    elem = config.eq_rhs
+                fn_inner += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
+                                                            [config.eq_rhs.split("_")[0], ch, elem, "systemRHS" ]), 2)
             functions += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_same_ob),
                                                           ["L1RHSDone", fn_inner]), 2) + self.nl
         
         functions += self.tab + "----" + __name__.replace('.','/') +  " : GlobalStateManagementFunctions" + self.nl
-        template = MurphiTemplates.f_eqp_global_state if config.eq_check_progress else MurphiTemplates.f_eq_global_state
-        functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
-                                                          ["& L1RHSDone()" if ("dir" in config.eq_rhs) else ""]), 2) + self.nl
+        if not config.use_mrecords:
+            template = MurphiTemplates.f_eq_global_state
+            if config.eq_check_progress:
+                template = MurphiTemplates.f_eqp_global_state
+            functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
+                                                            ["& L1RHSDone()" if ("dir" in config.eq_rhs) else ""]), 2) + self.nl
+        else:
+            template = MurphiTemplates.f_eq_mr_global_state
+            if config.eq_check_progress:
+                template = MurphiTemplates.f_eqp_mr_global_state
+            functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
+                                                            ["& L1RHSDone()" if ("dir" in config.eq_rhs) else ""]), 2) + self.nl
+
+        if config.use_mrecords and config.eq_check and "cacheL1RHS" in machineTypes:
+            functions += self.tab + "----" + __name__.replace('.','/') +  " : ActiveRHSFunction" + self.nl
+            functions += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_mr_rhs_l1_only_one_active),
+                                                                ["cacheL1RHS", "i_cacheL1RHS[n].cb[adr].State", "cacheL1RHS_I"]), 2) + self.nl
+
 
         murphi_str.append(functions)
-    
-    def get_machine_types(self, clusters: List[Cluster]) -> List[str]:
-        archs = set()
-        for cluster in clusters:
-            archs.update(set(machine.arch for machine in cluster.system_tuple))
-
-        return list(set([ str(x) for x in list(archs)]))
-    
-    def get_machines(self, clusters: List[Cluster]) -> List[str]:
-        archs = set()
-        for cluster in clusters:
-            for arch in cluster.get_machine_architectures():
-                mach_count = cluster.get_machine_architecture_count(arch)
-                for i in range(mach_count):
-                    archs.add(str(arch) + "_" + str(i))
-
-        return list(archs)
-
-    def get_state_assoc(self, systemStates: List[str], machines: List[str], config: BaseConfig) -> Dict[str, str]:
-        assoc = {}
-        for state in systemStates:
-            assoc[state] = []
-
-        for machine in machines:
-            if machine == config.eq_lhs:
-                assoc["systemLHS"].append(machine)
-            elif machine == config.eq_rhs: 
-                assoc["systemRHS"].append(machine)
-            elif "L1" in machine:
-                if "LHS" in machine:
-                    assoc["systemLHS"].append(machine)
-                elif "RHS" in machine:
-                    assoc["systemRHS"].append(machine)
-            elif "L2" in machine:
-                if "LHS" in machine:
-                    assoc["systemLHSExt"].append(machine)
-                elif "RHS" in machine:
-                    assoc["systemRHSExt"].append(machine)
-
-        return assoc
 
     def gen_ob_comp(self, template_in: str, template_out: str, assoc: Dict[str, str], config: BaseConfig, with_input = True, with_output = True) -> str:
         obstr = ""
@@ -148,7 +129,10 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
         # Check all input, i.e. the eq_LHS entity
         if with_input:
             obstr += "-- Inputs" + self.nl
-            obstr += "alias elem : from_m_" + config.eq_lhs.split("_")[0] + "(m_" + config.eq_lhs + ") do" + self.nl
+            if config.use_mrecords:
+                obstr += "alias elem : " + config.eq_lhs + " do" + self.nl
+            else:
+                obstr += "alias elem : from_m_" + config.eq_lhs.split("_")[0] + "(m_" + config.eq_lhs + ") do" + self.nl
             
             for ch in channels:
                 if OptimizationHelper.has_arch_net(config.eq_lhs, ch, config) and OptimizationHelper.has_arch_net(config.eq_rhs, ch, config):
@@ -164,14 +148,20 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
         if with_output:
             obstr += "-- Outputs" + self.nl
             for elem in assoc["systemLHSExt"]:
-                obstr += "alias elem : from_m_" + elem.split("_")[0] + "(m_" + elem + ") do" + self.nl
+                if config.use_mrecords:
+                    obstr += "for elem : OBJSET_" + EqCheckHelper.get_type(elem) + " do" + self.nl
+                else:
+                    obstr += "alias elem : from_m_" + elem.split("_")[0] + "(m_" + elem + ") do" + self.nl
             
                 for ch in channels:
                     if OptimizationHelper.has_arch_net(elem, ch, config):
                         obstr += self.add_tabs(self._stringReplKeys(self._openTemplate(template_out),
                                                                     [elem.split("_")[0], elem.split("_")[0].replace("LHS", "RHS"), "systemLHS", "systemRHS", ch]), 1) + self.nl
 
-                obstr += "endalias" + self.end + self.nl
+                if config.use_mrecords:
+                    obstr += "endfor" + self.end + self.nl
+                else:
+                    obstr += "endalias" + self.end + self.nl
             
         return self.add_tabs(obstr, 1)
 

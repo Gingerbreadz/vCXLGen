@@ -28,6 +28,7 @@
 
 from typing import List, Dict
 
+from Backend.Murphi.MurphiModular.EqCheckHelper import EqCheckHelper
 from Parser.DataTypes.ClassBaseNetwork import BaseMessage
 
 from DataObjects.ClassCluster import Cluster
@@ -68,6 +69,8 @@ class GenMessageStateMachines(TemplateBase, Debug):
         for arch in arch_set:
             if str(arch) in arch_names:
                 continue
+            if config.use_mrecords and config.eq_check and EqCheckHelper.get_machine_state(str(arch), config) == "systemRHSExt":
+                continue
             arch_names.add(str(arch))
             self.arch_local_var_dict[arch] = GenMurphiRevTree(cluster, arch, config, True)
             func_str = (self.gen_state_machine_graph(arch))
@@ -84,7 +87,11 @@ class GenMessageStateMachines(TemplateBase, Debug):
                         func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,m_directory\2_0", func_str)
                 else:
                     if config.eq_check:
-                        assert False, "EQ CHECK with mrecords not yet implemented"
+                        if "LHS" in func_str:
+                            func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,to_m_directory\2LHS(directory\2LHS)", func_str)
+                        else:
+                            func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(L2\w*)", r"\1m,to_m_directory\2RHS(directory\2LHS)", func_str)
+                            func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(L1\w*)", r"\1m,to_m_directory\2RHS(directory\2RHS)", func_str)
                 
                     func_str = re.sub(r"(msg\w* := [^\n]*)m,directory(\w*)", r"\1m,to_m_directory\2(directory\2)", func_str)
 

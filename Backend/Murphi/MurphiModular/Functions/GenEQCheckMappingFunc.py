@@ -28,6 +28,7 @@
 
 from typing import List, Dict
 
+from Backend.Murphi.MurphiModular.EqCheckHelper import EqCheckHelper
 from Backend.Murphi.MurphiModular.OptimizationHelper import OptimizationHelper
 from DataObjects.ClassCluster import Cluster
 
@@ -46,10 +47,13 @@ class GenEQCheckMappingFunc(TemplateHandler, Debug):
         Debug.__init__(self)
 
         functions = "----" + __name__.replace('.','/') + self.nl
-
-        template = MurphiTemplates.f_eq_mappings
-        functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
-                                                          [self.gen_mappings(clusters, config)]), 1) + self.nl
+        
+        if config.use_mrecords:
+            functions += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_mr_mappings),
+                                                            [self.gen_mappings(clusters, config), config.eq_lhs, config.eq_rhs]), 1) + self.nl
+        else:
+            functions += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_mappings),
+                                                            [self.gen_mappings(clusters, config)]), 1) + self.nl
         
 
         template = MurphiTemplates.f_eq_x_mappings
@@ -70,61 +74,21 @@ class GenEQCheckMappingFunc(TemplateHandler, Debug):
                                                         [lhs, rhs]), 1) + self.nl
 
         functions += self.tab + "----" + __name__.replace('.','/') +  " : StateAssociation" + self.nl
-        systemStates = ["systemLHS", "systemRHS", "systemLHSExt", "systemRHSExt"]
-        assoc = self.get_state_assoc(systemStates, self.get_machines(clusters), config)
+        assoc = EqCheckHelper.get_state_assoc(EqCheckHelper.systemStates, EqCheckHelper.get_machines(clusters), config)
         template = MurphiTemplates.f_eq_global_state_association
         functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
-                                                          [self.gen_state_assoc(systemStates, assoc, config)]), 1) + self.nl
+                                                          [self.gen_state_assoc(EqCheckHelper.systemStates, assoc, config)]), 1) + self.nl
         
         functions += self.tab + "----" + __name__.replace('.','/') +  " : MessageComparisonFunctions" + self.nl
-        template = MurphiTemplates.f_eq_msg_func
+        template = MurphiTemplates.f_eq_mr_msg_func if config.use_mrecords else MurphiTemplates.f_eq_msg_func
         functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
                                                           []), 2) + self.nl
 
         functions += self.tab + "----" + __name__.replace('.','/') +  " : BackupFunctions" + self.nl
-        functions += self.gen_rhs_backup(self.get_machine_types(clusters), config)
+        functions += self.gen_rhs_backup(EqCheckHelper.get_machine_types(clusters), config)
 
         murphi_str.append(functions)
     
-    def get_machine_types(self, clusters: List[Cluster]) -> List[str]:
-        archs = set()
-        for cluster in clusters:
-            archs.update(set(machine.arch for machine in cluster.system_tuple))
-
-        return list(set([ str(x) for x in list(archs)]))
-    
-    def get_machines(self, clusters: List[Cluster]) -> List[str]:
-        archs = set()
-        for cluster in clusters:
-            for arch in cluster.get_machine_architectures():
-                mach_count = cluster.get_machine_architecture_count(arch)
-                for i in range(mach_count):
-                    archs.add(str(arch) + "_" + str(i))
-
-        return list(archs)
-
-    def get_state_assoc(self, systemStates: List[str], machines: List[str], config: BaseConfig) -> Dict[str, str]:
-        assoc = {}
-        for state in systemStates:
-            assoc[state] = []
-
-        for machine in machines:
-            if machine == config.eq_lhs:
-                assoc["systemLHS"].append(machine)
-            elif machine == config.eq_rhs: 
-                assoc["systemRHS"].append(machine)
-            elif "L1" in machine:
-                if "LHS" in machine:
-                    assoc["systemLHS"].append(machine)
-                elif "RHS" in machine:
-                    assoc["systemRHS"].append(machine)
-            elif "L2" in machine:
-                if "LHS" in machine:
-                    assoc["systemLHSExt"].append(machine)
-                elif "RHS" in machine:
-                    assoc["systemRHSExt"].append(machine)
-
-        return assoc
     
     def gen_state_assoc(self, systemStates: List[str], assoc: Dict[str, str], config: BaseConfig) -> str:
         assocs = ""
@@ -133,7 +97,10 @@ class GenEQCheckMappingFunc(TemplateHandler, Debug):
             assocs += "if s = " + state + " then" + self.nl
 
             for machine in assoc[state]:
-                assocs += self.tab + "if m = m_" + machine + " then" + self.nl
+                if config.use_mrecords:
+                    assocs += self.tab + "if !isundefined(m." + EqCheckHelper.get_type(machine) + ") then" + self.nl    
+                else:
+                    assocs += self.tab + "if m = m_" + machine + " then" + self.nl
                 assocs += self.tab + self.tab + "return true" + self.end
                 assocs += self.tab + "endif" + self.end
 
@@ -179,17 +146,20 @@ class GenEQCheckMappingFunc(TemplateHandler, Debug):
         return self.add_tabs(bkstr, 2)
 
     def gen_mappings(self, clusters: List[Cluster], config: BaseConfig) -> str:
-        systemStates = ["systemLHS", "systemRHS", "systemLHSExt", "systemRHSExt"]
         map_s = ""
 
-        machines = self.get_machines(clusters)
-        assoc = self.get_state_assoc(systemStates, self.get_machines(clusters), config)
+        assoc = EqCheckHelper.get_state_assoc(EqCheckHelper.systemStates, EqCheckHelper.get_machines(clusters), config)
 
-        map_s += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_mappings_inner),
-                                                        [config.eq_lhs, config.eq_rhs]), 1)
+        if not config.use_mrecords:
+            map_s += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_mappings_inner),
+                                                            [config.eq_lhs, config.eq_rhs]), 1)
 
         for elem in assoc["systemLHSExt"]:
-            map_s += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_mappings_inner),
+            template = MurphiTemplates.f_eq_mappings_inner 
+            if config.use_mrecords:
+                template = MurphiTemplates.f_eq_mr_mappings_inner
+                elem = EqCheckHelper.get_type(elem)
+            map_s += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
                                                         [elem, elem.replace("LHS", "RHS")]), 1)
 
         return map_s

@@ -130,6 +130,15 @@ class MurphiTemplates:
     f_eqp_global_state = "EQCheck/eqp_global_state.m"
     f_eqp_global_rules = "EQCheck/eqp_global_rules.m"
 
+    f_eq_mr_global_state = "EQCheck/eq_MR_global_state.m"
+    f_eqp_mr_global_state = "EQCheck/eqp_MR_global_state.m"
+
+    f_eq_mr_mappings = "EQCheck/map_MR_lhs_to_rhs_outer.m"
+    f_eq_mr_mappings_inner = "EQCheck/map_MR_lhs_to_rhs_inner.m"
+    f_eq_mr_msg_func = "EQCheck/eq_MR_msg_func.m"
+    f_eq_mr_queue_no_msg_from = "EQCheck/queue/MR_no_msg_from.m"
+    f_eq_mr_rhs_l1_only_one_active = "EQCheck/eq_MR_rhs_l1_only_one_active.m"
+
     f_eq_queue_equal = "EQCheck/queue/equal.m"
     f_eq_queue_in_fixable = "EQCheck/queue/rhs_in_fixable.m"
     f_eq_queue_out_fixable = "EQCheck/queue/rhs_out_fixable.m"
@@ -137,7 +146,10 @@ class MurphiTemplates:
     f_eq_queue_send_missing = "EQCheck/queue/send_missing.m"
     f_eq_queue_no_msg_from = "EQCheck/queue/no_msg_from.m"
 
-    f_access_based_liveness = "access_based_liveness.m"
+    f_access_based_liveness = "Liveness/access_based_liveness.m"
+    f_mr_access_based_liveness = "Liveness/mr_access_based_liveness.m"
+    f_mr_access_based_liveness_scalar = "Liveness/mr_access_based_liveness_scalar.m"
+    f_mr_liveness_func = "Liveness/mr_liveness_func.m"
 
     # Reset functions
     f_machine_reset_body = "ResetFunc/MachineResetBody.m"

@@ -244,3 +244,26 @@ class BaseConfig(Debug):
             "eq_check_progress": True,
             "eq_effective_mi_downgrade": True
         }
+
+    ## Returns a dictionary that can be passes as the config to the BaseConfig constructor to setup the default equivalence check configuration
+    def EqCheckMRDefault() -> dict:
+        return BaseConfig.RumurDefault() | {
+            "use_mrecords": True, 
+            "substitute_unions": False,
+            "eq_check": True,
+            "eq_lhs": "directoryL1LHS",
+            "eq_rhs": "abstractionRHS",
+            "eq_check_progress": True,
+            "eq_effective_mi_downgrade": True
+        }
+    
+    def EqCheckMRDefaultInverse() -> dict:
+        return BaseConfig.RumurDefault() | {
+            "use_mrecords": True, 
+            "substitute_unions": False,
+            "eq_check": True,
+            "eq_lhs": "abstractionLHS",
+            "eq_rhs": "directoryL1RHS",
+            "eq_check_progress": True,
+            "eq_effective_mi_downgrade": True
+        }

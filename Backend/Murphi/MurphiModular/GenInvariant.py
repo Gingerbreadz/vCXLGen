@@ -40,6 +40,8 @@ class GenInvariant(MurphiTokens, TemplateHandler):
     def __init__(self, murphi_str: List[str], clusters: List[Cluster], config: BaseConfig):
         TemplateHandler.__init__(self)
 
+        murphi_str.append("--" + __name__.replace('.','/') + self.nl)
+        
         if config.eq_check_progress:
             murphi_str.append('  liveness "can always reproduce progress" g_system_state = systemLHS & !g_progress_tracking;\n')
         elif config.eq_check:
@@ -52,10 +54,16 @@ class GenInvariant(MurphiTokens, TemplateHandler):
                     if str(arch) not in archs and "L1" in str(arch) and "cache" in str(arch):
                         archs.add(str(arch))
                         mach_count = cluster.get_machine_architecture_count(arch)
-                        for i in range(mach_count):
-                            murphi_str.append(self.gen_access_based_liveness(str(arch) + "_" + str(i)))
 
-        murphi_str.append("--" + __name__.replace('.','/') + self.nl + self.add_tabs(self.gen_SWMR_invariant(config), 1))
+                        if not config.use_mrecords:
+                            for i in range(mach_count):
+                                murphi_str.append(self.gen_access_based_liveness(str(arch) + "_" + str(i)))
+                        elif mach_count == 1:
+                            murphi_str.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_mr_access_based_liveness), [str(arch)]) + self.nl)
+                        else:
+                            murphi_str.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_mr_access_based_liveness_scalar), [str(arch)]) + self.nl)
+
+        murphi_str.append(self.add_tabs(self.gen_SWMR_invariant(config), 1))
 
     def gen_SWMR_invariant(self, config: BaseConfig):
         invstr = ""

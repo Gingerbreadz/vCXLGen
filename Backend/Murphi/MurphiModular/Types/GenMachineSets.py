@@ -28,6 +28,7 @@
 
 from typing import List, Dict, Union
 
+from Backend.Murphi.MurphiModular.EqCheckHelper import EqCheckHelper
 from DataObjects.ClassCluster import Cluster
 
 from Backend.Common.TemplateHandler.TemplateBase import TemplateBase
@@ -43,15 +44,23 @@ class GenMachineSets(TemplateBase):
         mach_list: set[str] = set()
         all_mach_cnt_dict: Dict[str, Union[int, str]] = {}
         cluster_str = ""
+        cluster_rhs_str = ""
 
         for cluster in clusters:
-            cluster_str += "-- Cluster: " + str(cluster) + self.nl
+            c_str = ""
+            c_str += "-- Cluster: " + str(cluster) + self.nl
             mach_cnt_dict = self.gen_cluster_machines(cluster)
-            cluster_str += self.gen_obj_sets(mach_cnt_dict, mach_list)
-            cluster_str += self.gen_cluster_set(cluster, mach_cnt_dict, config)
+            c_str += self.gen_obj_sets(mach_cnt_dict, mach_list, config)
+            c_str += self.gen_cluster_set(cluster, mach_cnt_dict, config)
             mach_list.update(mach_cnt_dict.keys())
             all_mach_cnt_dict |= mach_cnt_dict
 
+            if config.eq_check and "RHS" in str(cluster):
+                cluster_rhs_str += c_str
+            else:
+                cluster_str += c_str
+
+        cluster_str += cluster_rhs_str
         cluster_str += self.nl
         cluster_str += self.gen_mach_set(all_mach_cnt_dict, config)
 
@@ -67,17 +76,22 @@ class GenMachineSets(TemplateBase):
             mach_cnt_dict[str(arch)] = mach_count
         return mach_cnt_dict
 
-    def gen_obj_sets(self, mach_cnt_dict: Dict[str, int], mach_list: set[str]):
+    def gen_obj_sets(self, mach_cnt_dict: Dict[str, int], mach_list: set[str], config: BaseConfig):
         mach_set_str = ""
+        mach_rhs_set_str = ""
         for mach in mach_cnt_dict:
             if mach in mach_list:
                 continue
-            mach_set_str += MurphiTokens.k_obj_set + mach + ": "
-            if mach_cnt_dict[mach] > 1:
+            if config.use_mrecords and config.eq_check and EqCheckHelper.get_machine_state(str(mach), config) == "systemRHSExt":
+                mach_rhs_set_str += MurphiTokens.k_obj_set + mach + ": "
+                mach_rhs_set_str += MurphiTokens.k_obj_set + str(mach).replace("RHS", "LHS") + self.end
+            elif mach_cnt_dict[mach] > 1:
+                mach_set_str += MurphiTokens.k_obj_set + mach + ": "
                 mach_set_str += "scalarset(" + str(mach_cnt_dict[mach]) + ")" + self.end
             else:
+                mach_set_str += MurphiTokens.k_obj_set + mach + ": "
                 mach_set_str += "enum{" + str(mach) + "}" + self.end
-        return mach_set_str
+        return mach_set_str + mach_rhs_set_str
 
     def gen_cluster_set(self, cluster: Cluster, mach_cnt_dict: Dict[str, Union[int, str]], config: BaseConfig) -> str:
         cluster_set_str = str(cluster) + MurphiTokens.k_machines
