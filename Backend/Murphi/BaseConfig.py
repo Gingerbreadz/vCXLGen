@@ -93,6 +93,9 @@ class BaseConfig(Debug):
     # Verifies liveness of L1 caches using access based properties
     access_based_liveness = False
 
+    # Minimize the queue sizes in the model
+    min_queues = False
+
     # generates an equivalence check for the L2 layer, maps LHS & RHS, maps LHS dir to RHS cache
     eq_check = False
     eq_lhs = ""
@@ -151,6 +154,8 @@ class BaseConfig(Debug):
             self.eq_effective_mi_downgrade = config["eq_effective_mi_downgrade"]
         if "access_based_liveness" in config:
             self.access_based_liveness = config["access_based_liveness"]
+        if "minimize_queue_size" in config:
+            self.min_queues = config["minimize_queue_size"]
         if "use_mrecords" in config:
             self.use_mrecords = config["use_mrecords"]
         if "full_sys" in config:
@@ -223,7 +228,8 @@ class BaseConfig(Debug):
             "use_per_machine_queues": True,
             "substitute_unions": True,
             "substitute_multisets": True,
-            "remove_unused_channels": True
+            "remove_unused_channels": True,
+            "minimize_queue_size": True
         }
 
     ## Returns a dictionary that can be passes as the config to the BaseConfig constructor to setup the default equivalence check configuration

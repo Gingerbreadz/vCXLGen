@@ -56,7 +56,7 @@ class MESIxMESIxMESI(RunFullSystem, Debug):
         protocol_3_name: str = "MESI.pcc"
         self.run_test(protocol_1_name, protocol_2_name, protocol_3_name, path,
                       [self.translation_table_first, self.translation_table_second], [self.translation_table_third, self.translation_table_second],
-                      self.sc_litmus_test_gen.litmus_test_list, self.rc_litmus_test_gen.litmus_test_list, eq_checks=eq_checks, cc_num = cc_num)
+                      self.sc_litmus_test_gen.litmus_test_list, self.sc_litmus_test_gen.litmus_test_list, eq_checks=eq_checks, cc_num = cc_num)
         self.psuccess(f"HieraHeteroGen {protocol_1_name.split('.')[0]} x {protocol_2_name.split('.')[0]} x {protocol_3_name.split('.')[0]} execution complete")
 
     @staticmethod

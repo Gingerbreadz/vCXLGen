@@ -32,6 +32,7 @@ from Backend.Murphi.MurphiModular.MurphiTokens import MurphiTokens
 from Backend.Common.TemplateHandler.TemplateBase import TemplateBase
 from Backend.Murphi.BaseConfig import BaseConfig
 
+from Backend.Murphi.MurphiModular.OptimizationHelper import OptimizationHelper
 from Debug.Monitor.ClassDebug import Debug
 from DataObjects.ClassCluster import Cluster
 
@@ -68,14 +69,44 @@ class GenNetwork(TemplateBase, Debug):
             objstr += (MurphiTokens.k_net + MurphiTokens.k_unordered + ": array[" + MurphiTokens.k_machines
                     + "] of multiset[" + MurphiTokens.c_unordered_const + "] of " + MurphiTokens.k_message + self.end)
         else:
+            
+            
+            archs = set()
+            for cluster in clusters:
+                nets = set()
+                for global_arch in cluster.get_global_architectures():
+                    for net in global_arch.network.ordered_networks:
+                        nets.add(net)
+                for arch in cluster.get_machine_architectures():
+                    if str(arch) in archs:
+                        continue
+                    archs.add(str(arch))
+                    if not config.min_queues:
 
-            archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
-            for arch in archs:
-                objstr += (MurphiTokens.k_net + arch + ": array[" + MurphiTokens.k_obj_set + arch
-                        + point_to_point_ext_str + "] of array[0.." + MurphiTokens.c_ordered_const + "-1] of "
-                        + MurphiTokens.k_message + self.end)
-                
-                objstr += (MurphiTokens.k_net + arch + "_cnt" + ": array[" + MurphiTokens.k_obj_set + arch
-                        + point_to_point_ext_str + "] of 0.." + MurphiTokens.c_ordered_const + self.end)
+                        objstr += (MurphiTokens.k_net + str(arch) + ": array[" + MurphiTokens.k_obj_set + str(arch)
+                                + point_to_point_ext_str + "] of array[0.." + MurphiTokens.c_ordered_const + "-1] of "
+                                + MurphiTokens.k_message + self.end)
+                        
+                        objstr += (MurphiTokens.k_net + str(arch) + "_cnt" + ": array[" + MurphiTokens.k_obj_set + str(arch)
+                                + point_to_point_ext_str + "] of 0.." + MurphiTokens.c_ordered_const + self.end)
+                    
+                    else:
+                        for net in nets:
+                            if OptimizationHelper.has_arch_net(str(arch), str(net), config):
+                                net_max = "("
+
+                                for c in clusters:
+                                    if arch in c.get_machine_architectures():
+                                        if OptimizationHelper.can_arch_recieve(str(arch), str(net), str(c)):
+                                            net_max += str(c) + "_NET_MAX+"
+                                net_max = net_max.removesuffix("+") + ")"
+                                
+                                objstr += (MurphiTokens.k_net + net + "_" + str(arch) + ": array[" + MurphiTokens.k_obj_set + str(arch)
+                                    + point_to_point_ext_str + "] of array[0.." + net_max + "-1] of "
+                                        + MurphiTokens.k_message + self.end)
+
+                        objstr += (MurphiTokens.k_net + str(arch) + "_cnt" + ": array[" + MurphiTokens.k_obj_set + str(arch)
+                            + point_to_point_ext_str + "] of 0.." + MurphiTokens.c_ordered_const + self.end)
+                        
 
         return objstr

@@ -4,17 +4,36 @@ from Backend.Murphi.BaseConfig import BaseConfig
 
 class OptimizationHelper:
 
+    supported_nets = ["req", "resp", "fwd"]
+
     def has_arch_net(arch: str, net: str, config: BaseConfig):
         if not config.remove_unused_channels:
             return True
 
-        if net not in ["req", "resp", "fwd"]:
+        if net not in OptimizationHelper.supported_nets:
             breakpoint() 
             assert False # unknown net
 
         if "cache" in arch and net == "req":
             return False
         if "dir" in arch and "L2" in arch and net == "fwd":
+            return False
+        
+        return True
+    
+    def can_arch_recieve(arch: str, net: str, cluster: str):
+
+        if net not in OptimizationHelper.supported_nets:
+            breakpoint() 
+            assert False # unknown net
+
+        if "cache" in arch and net == "req":
+            return False
+        if "dir" in arch and "L2" in arch and net == "fwd":
+            return False
+        if "dir" in arch and "L1" in arch and net == "fwd" and "1" in cluster:
+            return False
+        if "dir" in arch and "L1" in arch and net == "req" and "2" in cluster:
             return False
         
         return True

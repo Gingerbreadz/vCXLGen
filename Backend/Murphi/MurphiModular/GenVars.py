@@ -102,15 +102,16 @@ class GenVars(TemplateHandler):
                     archs.add(str(arch))
                     for net in nets:
                         if OptimizationHelper.has_arch_net(str(arch), str(net), config):
-                            network_str += self.gen_named_ordered_network(str(arch), net)
+                            net_type = net+"_" if config.min_queues else ""
+                            network_str += self.gen_named_ordered_network(str(arch), net, net_type=net_type)
                             if config.eq_check and "RHS" in str(arch):
-                                network_str += self.gen_named_ordered_network(str(arch), net, "_BKUP")
+                                network_str += self.gen_named_ordered_network(str(arch), net, "_BKUP", net_type=net_type)
                     network_str += self.nl
 
         return network_str + self.nl + fifo_str + self.nl
 
-    def gen_named_ordered_network(self, name: str, ordered_network: Channel, name_suffix : str = "") -> str:
-        o_net = self.tab + str(ordered_network) + "_" + name + name_suffix + ": " + MurphiTokens.k_net + name + self.end
+    def gen_named_ordered_network(self, name: str, ordered_network: Channel, name_suffix : str = "", net_type : str = "") -> str:
+        o_net = self.tab + str(ordered_network) + "_" + name + name_suffix + ": " + MurphiTokens.k_net + net_type + name + self.end
         o_net += (self.tab + MurphiTokens.k_vector_cnt + str(ordered_network) + "_" + name + name_suffix + ": " +
                   MurphiTokens.k_net + name + "_cnt" + self.end)
         return o_net

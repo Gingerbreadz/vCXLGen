@@ -102,7 +102,7 @@ class RunFullSystem(Debug):
         hhcache_machineA = Machine(level_1A.directory)
         cache_machine_1B = Machine(level_1B.cache)
         hhcache_machineB = Machine(level_1B.directory)
-        #hhcache_machine = Machine(level_2.cache)
+        cache_machine_2 = Machine(level_2A.cache)
         #cache_machine_2 = Machine(hhgen_ctrl_a.arch_tuple[1])
 
         cluster_1A = Cluster(
@@ -118,40 +118,23 @@ class RunFullSystem(Debug):
         #cluster_1.update_machine_archs(directory_machine_1.get_arch_list()[0], hhgen_ctrl_a)
         #cluster_2.update_machine_archs(hhcache_machine_2.get_arch_list()[0], hhgen_ctrl_a)
 
-        GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, eq_checks=eq_checks, full_sys=True, cc_num=cc_num)
+        # TODO: REENABLE
+        # GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, eq_checks=eq_checks, full_sys=True, cc_num=cc_num)
 
         #RunMurphiCheck([cluster_1], sys_name, None, 4000, 'DeadlockFreedom')
         #RunSLICCModular(cluster_1, sys_name)
 
         #self.verify_flat_protocols(cache_machine_1, cache_machine_2, directory_machine, self.sys_name, 4)
 
-        #cache_thread_dict: Dict[Machine, List[LitmusTest]] = {cache_machine_1: litmus_test_list_1,
-        #                                                      cache_machine_2: litmus_test_list_2}
+        cache_thread_dict: Dict[Machine, List[LitmusTest]] = {cache_machine_1A: litmus_test_list_1,
+                                                             cache_machine_1B: litmus_test_list_2}
 
-        #if litmus_test_list_1 and litmus_test_list_2:
-        #    self.run_litmus_test(self.sys_name, cache_thread_dict, directory_machine)
+        if litmus_test_list_1 and litmus_test_list_2:
+           self.run_full_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA, hhcache_machineB)
+        #    self.run_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA)
 
-    def verify_flat_protocols(self,
-                              cache_machine_1: Machine, cache_machine_2: Machine, directory_machine: Machine,
-                              file_name: str = '', thread_cnt: int = 3):
-        make_dir('Deadlock_Tests')
-        for cnt_int in range(2, thread_cnt+1):
-            deadlock_test_comb = sorted(set([tuple(sorted(comb_tuple, key=lambda x: str(x)))
-                                             for comb_tuple in product([cache_machine_1, cache_machine_2],
-                                                                       repeat=cnt_int)]),
-                                        key=lambda x: str(x))
-            for combination in deadlock_test_comb:
-                make_dir('_'.join([str(mach).split('_')[-1] for mach in combination]))
-                new_cluster = Cluster(combination + tuple([directory_machine]), 'C1', False)
-                GenerateMurphi([new_cluster], file_name, None)
-                dir_up()
-
-            Debug.psection(f'{self.sys_name} generated {len(deadlock_test_comb)} '
-                           f'system combinations for deadlock testing')
-        dir_up()
-
-    def run_litmus_test(self, file_name: str, cache_thread_dict: Dict[Machine, List[LitmusTest]],
-                        directory_machine: Machine):
+    def run_full_litmus_test(self, file_name: str, cache_thread_dict: Dict[Machine, List[LitmusTest]],
+                        directory_machine: Machine, hhcache_machineA: Machine, hhcache_machineB: Machine):
         total_tests_generated = 0
         make_dir('Litmus_Tests')  # HACK VARIABLE
         # Get set of litmus test present in all architectures
@@ -164,13 +147,13 @@ class RunFullSystem(Debug):
             load_perm_list = self.gen_prefetch_load_permutations(cache_mach_thread_dict, 0)
             for load_perm in load_perm_list:
                 for ct_tuple_list in perm_list:
-                    self.generate_litmus_test(file_name, ct_tuple_list, load_perm, directory_machine)
+                    self.generate_full_litmus_test(file_name, ct_tuple_list, load_perm, directory_machine, hhcache_machineA, hhcache_machineB)
                     total_tests_generated += 1
             dir_up()
 
         Debug.ptext(f'{total_tests_generated} Litmus tests were generated for {file_name} system')
 
-    def generate_litmus_test(self, file_name, ct_tuple_list, load_perm, directory_machine):
+    def generate_full_litmus_test(self, file_name, ct_tuple_list, load_perm, directory_machine, hhcache_machineA, hhcache_machineB):
         result = '_'.join([str(node[0]).split('_')[-1] for node in ct_tuple_list])
         make_dir(result)
         # Generate the litmus test and the cluster from the permutation
@@ -186,15 +169,80 @@ class RunFullSystem(Debug):
             mach_litmus_test.permutation_str_list.append(
                 self.gen_thread_prefetch_name(load_perm[ct_tuple_ind]))
             mach_list.append(ct_tuple_list[ct_tuple_ind][0])
-        cluster_1 = Cluster(tuple(mach_list) + tuple([directory_machine]), 'C1', False)
+
+        cluster_1A = Cluster(
+            tuple([mach for mach in mach_list if "1A" in str(mach)]) + tuple([hhcache_machineA]),
+            'C1A', False)
+        cluster_2 = Cluster(
+            tuple([hhcache_machineA, hhcache_machineB, directory_machine]),
+            'C2', False)
+        cluster_1B = Cluster(
+            tuple([mach for mach in mach_list if "1B" in str(mach)]) + tuple([hhcache_machineB]),
+            'C1B', False)
 
         # Update the litmus test name
         litmus_test_thread_perm = '_'.join(mach_litmus_test.permutation_str_list)
         mach_litmus_test.test_name = mach_litmus_test.test_name.split('.')[0] + litmus_test_thread_perm
 
-        GenerateMurphi([cluster_1], file_name, mach_litmus_test)
+        GenerateMurphi([cluster_1A, cluster_2, cluster_1B], file_name, mach_litmus_test, minimal=True, full_sys=True)
 
         dir_up()
+    
+    def run_litmus_test(self, file_name: str, cache_thread_dict: Dict[Machine, List[LitmusTest]],
+                        directory_machine: Machine, hhcache_machineA: Machine):
+        total_tests_generated = 0
+        make_dir('Litmus_Tests')  # HACK VARIABLE
+        # Get set of litmus test present in all architectures
+        cache_thread_set = sorted(self.filter_common_litmus_tests(cache_thread_dict))
+        for cache_thread in cache_thread_set:
+            make_dir(cache_thread.split('.')[0])
+
+            cache_mach_thread_dict = self.gen_cache_mach_thread_dict(cache_thread, cache_thread_dict)
+            perm_list = self.gen_arch_perm_list(cache_mach_thread_dict)
+            load_perm_list = self.gen_prefetch_load_permutations(cache_mach_thread_dict, 0)
+            for load_perm in load_perm_list:
+                for ct_tuple_list in perm_list:
+                    self.generate_litmus_test(file_name, ct_tuple_list, load_perm, directory_machine, hhcache_machineA)
+                    total_tests_generated += 1
+            dir_up()
+
+        Debug.ptext(f'{total_tests_generated} Litmus tests were generated for {file_name} system')
+
+    def generate_litmus_test(self, file_name, ct_tuple_list, load_perm, directory_machine, hhcache_machineA):
+        result = '_'.join([str(node[0]).split('_')[-1] for node in ct_tuple_list])
+        make_dir(result)
+        # Generate the litmus test and the cluster from the permutation
+        mach_litmus_test = MachThreadMapLitmusTest(ct_tuple_list[0][1].test_name, ct_tuple_list[0][1].exists)
+        mach_list: List[Machine] = []
+        for ct_tuple_ind in range(0, len(ct_tuple_list)):
+            thread = ct_tuple_list[ct_tuple_ind][1].threads[ct_tuple_ind]. \
+                new_prefetch_instructions_thread(load_perm[ct_tuple_ind])
+            mach_litmus_test.add_cache_mach_thread_map(ct_tuple_list[ct_tuple_ind][0],
+                                                       thread)
+            mach_litmus_test.permutation_str_list.append(
+                self.gen_thread_id_name(ct_tuple_list[ct_tuple_ind], ct_tuple_ind))
+            mach_litmus_test.permutation_str_list.append(
+                self.gen_thread_prefetch_name(load_perm[ct_tuple_ind]))
+            mach_list.append(ct_tuple_list[ct_tuple_ind][0])
+
+        cluster_1A = Cluster(
+            tuple([mach for mach in mach_list if "1A" in str(mach)]) + tuple([hhcache_machineA]),
+            'C1A', False)
+        cluster_2 = Cluster(
+            tuple([mach for mach in mach_list if "2" in str(mach)]) + tuple([hhcache_machineA, directory_machine]),
+            'C2', False)
+        # cluster_1B = Cluster(
+        #     tuple([mach for mach in mach_list if "1B" in str(mach)]) + tuple([hhcache_machineB]),
+        #     'C1B', False)
+
+        # Update the litmus test name
+        litmus_test_thread_perm = '_'.join(mach_litmus_test.permutation_str_list)
+        mach_litmus_test.test_name = mach_litmus_test.test_name.split('.')[0] + litmus_test_thread_perm
+
+        GenerateMurphi([cluster_1A, cluster_2], file_name, mach_litmus_test, minimal=True, full_sys=True)
+
+        dir_up()
+
 
     @staticmethod
     def gen_thread_id_name(ct_tuple: Tuple[Machine, LitmusTest], thread_id):

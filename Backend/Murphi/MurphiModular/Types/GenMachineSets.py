@@ -97,9 +97,13 @@ class GenMachineSets(TemplateBase):
         cluster_set_str = str(cluster) + MurphiTokens.k_machines
         if not config.use_mrecords: 
             if not config.substitute_unions:
-                cluster_set_str += ": union{"
+                cluster_set_str += ": "
+                if len(mach_cnt_dict) > 1:
+                    cluster_set_str += "union{"
                 for mach in mach_cnt_dict:
                     cluster_set_str += MurphiTokens.k_obj_set + str(mach) + ", "
+                if len(mach_cnt_dict) == 1:
+                    return cluster_set_str[:cluster_set_str.rfind(",")] + self.end
             else: # Use enums if "substitute_unions"
                 cluster_set_str += ": enum{"
                 for mach in mach_cnt_dict:
@@ -119,9 +123,12 @@ class GenMachineSets(TemplateBase):
         mach_set_str = MurphiTokens.k_machines
         if not config.use_mrecords: 
             if not config.substitute_unions:
-                mach_set_str += ": union{"
+                if len(mach_cnt_dict) > 1:
+                    mach_set_str += ": union{"
                 for mach in mach_cnt_dict:
                     mach_set_str += MurphiTokens.k_obj_set + str(mach) + ", "
+                if len(mach_cnt_dict) == 1:
+                    return mach_set_str[:mach_set_str.rfind(",")] + self.end
             else: # Use enums if "substitute_unions"
                 mach_set_str += ": enum{"
                 for mach in mach_cnt_dict:

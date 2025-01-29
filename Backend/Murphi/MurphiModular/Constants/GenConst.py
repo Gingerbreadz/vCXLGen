@@ -58,6 +58,8 @@ class GenConst(TemplateHandler, Debug):
 
         const_str = self.gen_static_const_str(config)
         const_str += self.gen_network_const_str(config)
+        if config.min_queues:
+            const_str += self.gen_cluster_network_const_str(clusters, config)
         const_str += self.gen_dyn_const_str(clusters, config)
 
         const_str = self.add_tabs(const_str, 1)
@@ -86,6 +88,24 @@ class GenConst(TemplateHandler, Debug):
         const_str = "---- System network constants" + self.nl
         const_str += self.tab + MurphiTokens.c_ordered_const + ": " + str(config.c_ordered_cnt) + self.end
         const_str += self.tab + MurphiTokens.c_unordered_const + ": " + str(config.c_unordered_cnt) + self.end
+        const_str += self.nl
+
+        return const_str
+    
+    def gen_cluster_network_const_str(self, clusters: List[Cluster], config: BaseConfig):
+        const_str = "---- Cluster network constants" + self.nl
+
+        for c in clusters:
+            sum = -1
+            archs = set()
+            for arch in c.get_machine_architectures():
+                if str(arch) in archs:
+                    continue
+                archs.add(str(arch))
+                sum += c.get_machine_architecture_count(arch)
+
+            const_str += self.tab + str(c) + "_NET_MAX : " + str(sum * config.c_adr_max + 1) + self.end
+
         const_str += self.nl
 
         return const_str
