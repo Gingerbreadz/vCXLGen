@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-  pythonPackages = pkgs.python3Packages;
+  pythonPackages = pkgs.python311Packages;
 in pkgs.mkShell rec {
   name = "impurePythonEnv";
   venvDir = "./.venv";
@@ -19,6 +19,8 @@ in pkgs.mkShell rec {
     pythonPackages.numpy
     pythonPackages.requests
     pythonPackages.matplotlib
+
+    pythonPackages.jupyter
 
     # In this particular example, in order to compile any binary extensions they may
     # require, the Python modules listed in the hypothetical requirements.txt need
