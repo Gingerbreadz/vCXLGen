@@ -376,8 +376,11 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
             # memory accesses complete in the order required by the memory consistency model. If no remote proxy
             # processor is required, then prune all event handling to maximize concurrency among remote accesses to
             # different addresses
-            if not remote_proxy_processor:
-                nest_graph = self.prune_event_execution(nest_graph)
+
+            ProtoCCTablePrinter().ptransitiontable(self.get_transitions_from_graph(nest_graph))
+
+            #if not remote_proxy_processor:
+            #    nest_graph = self.prune_event_execution(nest_graph)
 
             self.prune_evict_proxy_msg_assign(nest_graph)
 
