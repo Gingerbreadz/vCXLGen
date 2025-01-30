@@ -101,6 +101,9 @@ class GenNetwork(TemplateBase, Debug):
                                             net_max += str(c) + "_NET_MAX+"
                                 net_max = net_max.removesuffix("+") + ")"
                                 
+                                if net == "fwd":
+                                    net_max = "CACHE_NET_MAX"
+
                                 objstr += (MurphiTokens.k_net + net + "_" + str(arch) + ": array[" + MurphiTokens.k_obj_set + str(arch)
                                     + point_to_point_ext_str + "] of array[0.." + net_max + "-1] of "
                                         + MurphiTokens.k_message + self.end)

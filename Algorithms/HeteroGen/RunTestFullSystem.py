@@ -67,7 +67,9 @@ class RunFullSystem(Debug):
                  litmus_test_list_1: Union[LitmusTest, List[LitmusTest], None] = None,
                  litmus_test_list_2: Union[LitmusTest, List[LitmusTest], None] = None,
                  eq_checks = False,
-                 cc_num = 2):
+                 cc_num = 2,
+                 litmus = False
+                 ):
         os.chdir(protocol_dir_path)
         protocol_1 = open(filename_1).read()
         protocol_2 = open(filename_2).read()
@@ -118,8 +120,8 @@ class RunFullSystem(Debug):
         #cluster_1.update_machine_archs(directory_machine_1.get_arch_list()[0], hhgen_ctrl_a)
         #cluster_2.update_machine_archs(hhcache_machine_2.get_arch_list()[0], hhgen_ctrl_a)
 
-        # TODO: REENABLE
-        # GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, eq_checks=eq_checks, full_sys=True, cc_num=cc_num)
+        if not litmus:
+            GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, eq_checks=eq_checks, full_sys=True, cc_num=cc_num)
 
         #RunMurphiCheck([cluster_1], sys_name, None, 4000, 'DeadlockFreedom')
         #RunSLICCModular(cluster_1, sys_name)
@@ -129,9 +131,10 @@ class RunFullSystem(Debug):
         cache_thread_dict: Dict[Machine, List[LitmusTest]] = {cache_machine_1A: litmus_test_list_1,
                                                              cache_machine_1B: litmus_test_list_2}
 
-        if litmus_test_list_1 and litmus_test_list_2:
-           self.run_full_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA, hhcache_machineB)
-        #    self.run_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA)
+        if litmus:
+            if litmus_test_list_1 and litmus_test_list_2:
+                self.run_full_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA, hhcache_machineB)
+            #    self.run_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA)
 
     def run_full_litmus_test(self, file_name: str, cache_thread_dict: Dict[Machine, List[LitmusTest]],
                         directory_machine: Machine, hhcache_machineA: Machine, hhcache_machineB: Machine):
