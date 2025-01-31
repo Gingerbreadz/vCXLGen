@@ -345,6 +345,13 @@ class GenAccessMessageMap(Debug):
         
             # The actual access is a hidden access type
             orig_access = cache_dir_tuple[0].init_guard
+
+            if not isinstance(access, BaseAccess.Access):
+                continue
+
+            if not isinstance(orig_access, BaseAccess.Access):
+                continue
+
             # TODO do a smarter nesting of transition trees
             #   This makes the top-level protocol effectively MI (correct)
             #   For now, just Disable hidden_accesses (incorrect)
