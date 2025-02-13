@@ -145,11 +145,11 @@
 
 Network { 
           Ordered ndr;      // D2H Non-Data-Response (eq. resp PutX_Ack)
-          Ordered drs;      // D2H Data-Response (eq. resp GetX_Ack)
-          Ordered bisnp;    // D2H Backward-Invalidate-Snoop (eq. fwd Fwd_GetX, Inv)
-          Ordered birsp;    // H2D Backward-Invalidate-Response (eq. rsp Inv_Ack, WB)
-          Ordered rwd;      // H2D Request-with-Data (eq. req PutX)
-          Ordered req;      // H2D Request-without-Data (eq. req GetX)
+          Unordered drs;      // D2H Data-Response (eq. resp GetX_Ack)
+          Unordered bisnp;    // D2H Backward-Invalidate-Snoop (eq. fwd Fwd_GetX, Inv)
+          Unordered birsp;    // H2D Backward-Invalidate-Response (eq. rsp Inv_Ack, WB)
+          Unordered rwd;      // H2D Request-with-Data (eq. req PutX)
+          Unordered req2;      // H2D Request-without-Data (eq. req GetX)
 };
 
 Cache {
@@ -186,7 +186,7 @@ Architecture cache {
     // I ////////////////////////////////////////////////////////
     Process(I, load, State){
         msg = Req(MemRd_S_SnpData, ID, directory.ID);
-        req.send(msg);
+        req2.send(msg);
 
         await{
           when Cmp_S:
@@ -301,7 +301,7 @@ Architecture cache {
 
     //Process(I, load, State){
     //    msg = Req(MemRdData_SnpData, ID, directory.ID);
-    //    req.send(msg);
+    //    req2.send(msg);
 
     //    await{
     //      when Cmp_S:
@@ -317,7 +317,7 @@ Architecture cache {
 
     Process(I, store, State){
         msg = Req(MemRd_A_SnpInv, ID, directory.ID);
-        req.send(msg);
+        req2.send(msg);
 
         await{
           when Cmp_E:
@@ -418,7 +418,7 @@ Architecture cache {
 
     Process(S, store, State){
         msg = Req(MemInv_A_SnpInv, ID, directory.ID);
-        req.send(msg);
+        req2.send(msg);
 
         await{
             when Cmp_E:
@@ -438,7 +438,7 @@ Architecture cache {
 
     Process(S, evict, State){
         msg = Req(MemClnEvct_I, ID, directory.ID);
-        req.send(msg);
+        req2.send(msg);
 
         await{
             when Cmp:
@@ -625,7 +625,7 @@ Architecture cache {
 
     Process(E, evict, State){
         msg = Req(MemClnEvct_I, ID, directory.ID);
-        req.send(msg);
+        req2.send(msg);
 
         await{
             when Cmp:
