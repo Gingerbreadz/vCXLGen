@@ -212,7 +212,7 @@ Architecture cache {
               rwd.send(msg);
               //await{
               //    when BIConflictAck:
-              //        msg = BIRsp(BIRspI, ID, BIConflictAck.src);
+              //        msg = BIRsp(BIRspS, ID, BIConflictAck.src);
 	      //        birsp.send(msg);
 	      //        await{
 	      //  	  when Cmp_S:
@@ -240,6 +240,7 @@ Architecture cache {
 	      //  	    cl=MemData.cl;
 	      //  	    load;
 	      //  	    break;
+              //            // There's still one outstanding BIConflictAck -> must downgrade to S later when it is finally received
 	      //      }
 
 	      //    when Cmp_E:
@@ -249,6 +250,7 @@ Architecture cache {
 	      //  	    cl=MemData.cl;
 	      //  	    load;
 	      //  	    break;
+              //            // There's still one outstanding BIConflictAck -> must downgrade to S later when it is finally received
 	      //      }
               //}
 
@@ -285,6 +287,7 @@ Architecture cache {
 	      //  	    cl=MemData.cl;
 	      //  	    load;
 	      //  	    break;
+              //            // There's still one outstanding BIConflictAck -> must downgrade to I later when it is finally received
 	      //      }
 
 	      //    when Cmp_E:
@@ -294,6 +297,7 @@ Architecture cache {
 	      //  	    cl=MemData.cl;
 	      //  	    load;
 	      //  	    break;
+              //            // There's still one outstanding BIConflictAck -> must downgrade to I later when it is finally received
 	      //      }
               //}  
           }
