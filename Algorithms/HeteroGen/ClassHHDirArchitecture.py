@@ -428,8 +428,8 @@ class HHDirArchitecture(ArchTupleStateOrdering, NestTreeNetworkx, FlatArchitectu
 
             ProtoCCTablePrinter().ptransitiontable(self.get_transitions_from_graph(nest_graph))
 
-            #if not remote_proxy_processor:
-            #    nest_graph = self.prune_event_execution(nest_graph)
+            if not remote_proxy_processor:
+                nest_graph = self.prune_event_execution(nest_graph)
 
             self.prune_evict_proxy_msg_assign(nest_graph)
 
