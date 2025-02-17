@@ -13,7 +13,7 @@ from Protocols.HieraHeteroGen.Ordered.RCCOxMSI_HH import RCCOxMSI_HH
 # MESIxMESI_HH(cc_num=3, eq_checks=True)
 # MESIxMESIxMESI(cc_num=3)
 
-# MESIxCXL_HH()
+MESIxCXL_HH(eq_checks=True)
 
-MESIxMSIxMOESI()
-MESIxMOESIxMSI()
+# MESIxMSIxMOESI()
+# MESIxMOESIxMSI()
