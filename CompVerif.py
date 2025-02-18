@@ -1,3 +1,4 @@
+from Protocols.HieraHeteroGen.Ordered import MESIxCXLxMESI
 from Protocols.HieraHeteroGen.Ordered.MESIxCXL import MESIxCXL_HH
 from Protocols.HieraHeteroGen.Ordered.MESIxMESIxMESI import MESIxMESIxMESI
 from Protocols.HieraHeteroGen.Ordered.MESIxMOESIxMSI import MESIxMOESIxMSI
@@ -13,7 +14,8 @@ from Protocols.HieraHeteroGen.Ordered.RCCOxMSI_HH import RCCOxMSI_HH
 # MESIxMESI_HH(cc_num=3, eq_checks=True)
 # MESIxMESIxMESI(cc_num=3)
 
-MESIxCXL_HH(eq_checks=True)
+# MESIxCXL_HH(eq_checks=True)
 
+MESIxCXLxMESI()
 # MESIxMSIxMOESI()
 # MESIxMOESIxMSI()

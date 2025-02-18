@@ -89,7 +89,7 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
         functions += self.tab + "----" + __name__.replace('.','/') +  " : RHS Restrictions" + self.nl
         if "dir" in config.eq_rhs:
             fn_inner = ""
-            for ch in ["req", "resp", "fwd"]:
+            for ch in OptimizationHelper.supported_nets:
                 template = MurphiTemplates.f_eq_queue_no_msg_from
                 elem = "m_" + config.eq_rhs
                 if config.use_mrecords:
@@ -124,7 +124,6 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
 
     def gen_ob_comp(self, template_in: str, template_out: str, assoc: Dict[str, str], config: BaseConfig, with_input = True, with_output = True) -> str:
         obstr = ""
-        channels = ["req", "resp", "fwd"]
 
         # Check all input, i.e. the eq_LHS entity
         if with_input:
@@ -134,7 +133,7 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
             else:
                 obstr += "alias elem : from_m_" + config.eq_lhs.split("_")[0] + "(m_" + config.eq_lhs + ") do" + self.nl
             
-            for ch in channels:
+            for ch in OptimizationHelper.supported_nets:
                 if OptimizationHelper.has_arch_net(config.eq_lhs, ch, config) and OptimizationHelper.has_arch_net(config.eq_rhs, ch, config):
                     obstr += self.add_tabs(self._stringReplKeys(self._openTemplate(template_in),
                                                                 [config.eq_lhs.split("_")[0], config.eq_rhs.split("_")[0], "systemLHSExt", "systemRHSExt", ch]), 1) + self.nl
@@ -153,7 +152,7 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
                 else:
                     obstr += "alias elem : from_m_" + elem.split("_")[0] + "(m_" + elem + ") do" + self.nl
             
-                for ch in channels:
+                for ch in OptimizationHelper.supported_nets:
                     if OptimizationHelper.has_arch_net(elem, ch, config):
                         obstr += self.add_tabs(self._stringReplKeys(self._openTemplate(template_out),
                                                                     [elem.split("_")[0], elem.split("_")[0].replace("LHS", "RHS"), "systemLHS", "systemRHS", ch]), 1) + self.nl
@@ -167,13 +166,13 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
 
     def gen_repl(self, assoc: Dict[str, str], config: BaseConfig) -> str:
         restr = ""
-        channels = ["req", "resp", "fwd"]
+        
 
         # Check all input, i.e. the eq_LHS entity
         restr += "-- Inputs" + self.nl
         restr += "alias elem : from_m_" + config.eq_lhs.split("_")[0] + "(m_" + config.eq_lhs + ") do" + self.nl
         
-        for ch in channels:
+        for ch in OptimizationHelper.supported_nets:
             if OptimizationHelper.has_arch_net(config.eq_lhs, ch, config) and OptimizationHelper.has_arch_net(config.eq_rhs, ch, config):
                 restr += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_send_missing),
                                                             [config.eq_lhs.split("_")[0], config.eq_rhs.split("_")[0], "systemLHSExt", "systemRHSExt", ch]), 1) + self.nl
@@ -186,7 +185,7 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
             restr += "alias elem : from_m_" + elem.split("_")[0] + "(m_" + elem + ") do" + self.nl
             restr += "alias elem_rhs : map_" + elem.split("_")[0] + "_to_" + elem.split("_")[0].replace("LHS", "RHS") + "(elem) do" + self.nl
         
-            for ch in channels:
+            for ch in OptimizationHelper.supported_nets:
                 if OptimizationHelper.has_arch_net(elem, ch, config):
                     restr += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_queue_copy),
                                                                 [elem.split("_")[0], elem.split("_")[0].replace("LHS", "RHS"), "elem", "elem_rhs", ch, "map_LHS_msg_to_RHS"]), 1) + self.nl

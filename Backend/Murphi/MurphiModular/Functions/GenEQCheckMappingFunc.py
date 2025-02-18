@@ -111,7 +111,7 @@ class GenEQCheckMappingFunc(TemplateHandler, Debug):
 
     def gen_rhs_backup(self, machineTypes: List[str], config: BaseConfig) -> str:
         bkstr = ""
-        channels = ["req", "resp", "fwd"]
+        channels = OptimizationHelper.supported_nets
 
         bkstr += "procedure BackupRHS()" + self.end
         bkstr += "begin" + self.nl
