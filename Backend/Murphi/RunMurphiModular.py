@@ -51,7 +51,8 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                              eq_checks: bool = False,
                              full_sys: bool = False,
                              cc_num=2,
-                             minimal=False
+                             minimal=False,
+                             prefetch_count=0,
                              ) -> Tuple[ModularMurphi, str]:
     def_path = os.getcwd()
 
@@ -62,7 +63,7 @@ def _run_murphi_modular_base(clusters: List[Cluster],
         path += litmus_test.test_name.split('.')[0]
     make_dir(path)
 
-    murphi_desc = ModularMurphi(clusters, "MU_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config={"use_per_machine_queues":True, "remove_unused_channels":True, "full_sys": full_sys, "minimize_queue_size": True}))
+    murphi_desc = ModularMurphi(clusters, "MU_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config={"use_per_machine_queues":True, "remove_unused_channels":True, "full_sys": full_sys, "minimize_queue_size": True, "prefetch_count": prefetch_count}))
     
     if not minimal:
         # Generate Murphi file description
@@ -289,9 +290,10 @@ def GenerateMurphi(clusters: List[Cluster],
                   full_sys: bool = False,
                   cc_num=2,
                   minimal=False,
+                  prefetch_count=0,
                   ):
 
-    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir, eq_checks=eq_checks, full_sys=full_sys, cc_num=cc_num, minimal=minimal)
+    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir, eq_checks=eq_checks, full_sys=full_sys, cc_num=cc_num, minimal=minimal, prefetch_count=prefetch_count)
     sleep(0.10)
 
     murphi_desc.gen_make()

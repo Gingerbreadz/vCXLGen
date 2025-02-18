@@ -70,6 +70,8 @@ class GenAccessRuleSet(TemplateHandler, Debug):
             if not ruleset_str:
                 continue
             ruleset_str = self.rule_set_body(arch, ruleset_str) + self.nl
+            if config.prefetch_count > 0:
+                ruleset_str = ruleset_str.replace("& network_ready()", "& network_ready() & !InPrefetchingPhase()")
             ruleset_str_list.append(ruleset_str)
 
         murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(ruleset_str_list), 1))

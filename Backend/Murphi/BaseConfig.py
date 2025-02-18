@@ -107,6 +107,9 @@ class BaseConfig(Debug):
     # Configurations for individual machines
     machine_configs : List[MachineConfig] = []
 
+    # Prefetching instruction count
+    prefetch_count = 0
+
     # Enable to apply fixes for a full system check
     full_sys = False
 
@@ -160,6 +163,8 @@ class BaseConfig(Debug):
             self.use_mrecords = config["use_mrecords"]
         if "full_sys" in config:
             self.full_sys = config["full_sys"]
+        if "prefetch_count" in config:
+            self.prefetch_count = config["prefetch_count"]
         if "eq_check" in config:
             self.eq_check = config["eq_check"]
             self.eq_rhs = config["eq_rhs"]

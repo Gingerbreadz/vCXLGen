@@ -96,7 +96,7 @@ class GenConst(TemplateHandler, Debug):
         const_str = "---- Cluster network constants" + self.nl
 
         for c in clusters:
-            sum = -1
+            sum = 0
             archs = set()
             for arch in c.get_machine_architectures():
                 if str(arch) in archs:
@@ -104,7 +104,7 @@ class GenConst(TemplateHandler, Debug):
                 archs.add(str(arch))
                 sum += c.get_machine_architecture_count(arch)
 
-            const_str += self.tab + str(c) + "_NET_MAX : " + str(sum * config.c_adr_max + 1) + self.end
+            const_str += self.tab + str(c) + "_NET_MAX : " + str(sum * (config.c_adr_max + 1) + 1) + self.end
 
         const_str += self.nl
 

@@ -66,6 +66,11 @@ class GenNetworkFunc(TemplateHandler, Debug):
         # Generate the network ready check functions
         network_str += self.gen_network_ready_func(clusters, config)
 
+        if config.prefetch_count > 0:
+            used_str =  self.gen_network_ready_func(clusters, config).replace("ready", "used").replace("(" + MurphiTokens.c_ordered_const + "-" + str(config.total_mach_cnt) + ")", "1")
+            used_str = used_str.replace("true;", "false ;").replace("false;", "true ;").replace("if !", "if ")
+            network_str += used_str
+            
         # Generate the network reset functions
         network_str += self.gen_network_reset(clusters, config)
 

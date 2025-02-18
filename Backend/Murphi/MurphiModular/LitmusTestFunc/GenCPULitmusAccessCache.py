@@ -50,16 +50,16 @@ class GenCPULitmusAccessCache(TemplateHandler, Debug):
         self.config = config
         if config.litmus_testing:
             murphi_str.append("------" + __name__.replace('.', '/') + self.nl +
-                              self.add_tabs(self.gen_cpu_access_func(clusters), 1))
+                              self.add_tabs(self.gen_cpu_access_func(clusters, config), 1))
 
-    def gen_cpu_access_func(self, clusters: List[Cluster]) -> str:
+    def gen_cpu_access_func(self, clusters: List[Cluster], config: BaseConfig) -> str:
         access_func_str = ''
 
         exec_archs = set()
         for cluster in clusters:
             archs = cluster.get_machine_architectures()
             for arch in archs:
-                ret_str = self.cache_access_func(arch)
+                ret_str = self.cache_access_func(arch, config)
                 if not ret_str:
                     continue
                 exec_archs.add(arch)
@@ -71,7 +71,7 @@ class GenCPULitmusAccessCache(TemplateHandler, Debug):
 
         return access_func_str
 
-    def cache_access_func(self, arch: FlatArchitecture):
+    def cache_access_func(self, arch: FlatArchitecture, config: BaseConfig):
         states: List[State_v2] = arch.get_architecture_states()
         access_cache_str = ""
 
@@ -92,7 +92,13 @@ class GenCPULitmusAccessCache(TemplateHandler, Debug):
                                                  [str(arch), MurphiTokens.v_cache_block,
                                                   MurphiTokens.v_cbe, MurphiTokens.v_mach]) + self.nl
 
+        if config.prefetch_count > 0:
+            access_cache_str += self.tab + f"if (cpu.instrstr.QueueInd < {config.prefetch_count} & !network_used()) | !InPrefetchingPhase() then" + self.nl + self.nl
+
         access_cache_str += self.cache_access_evict(arch, access_trans_dict)
+
+        if config.prefetch_count > 0:
+            access_cache_str += self.tab + f"endif" + self.end
 
         access_cache_str += self._openTemplate(MurphiTemplates.f_cpu_cache_access_tail) + self.nl
 
