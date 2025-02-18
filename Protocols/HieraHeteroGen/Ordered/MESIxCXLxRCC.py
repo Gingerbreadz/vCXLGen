@@ -35,11 +35,11 @@ from Debug.Monitor.ClassDebug import Debug
 
 
 # Ordered reply forwarding communication pattern protocols
-class MESIxCXLxMESI(RunFullSystem, Debug):
+class MESIxCXLxRCC(RunFullSystem, Debug):
 
     translation_table_first = {'load': ['load'], 'store': ['store']} # MESI
-    translation_table_second = {'load': ['load'], 'store': ['store']} # MESI
-    translation_table_third = {'load': ['load'], 'store': ['store']} # MESI
+    translation_table_second = {'load': ['load'], 'store': ['store'], 'acquire': ['load'], 'release': ['store']} # CXL
+    translation_table_third = {'load': ['acquire'], 'store': ['release']}  # RCC
 
     def __init__(self, eq_checks = False, cc_num = 2):
         RunFullSystem.__init__(self)
@@ -53,7 +53,7 @@ class MESIxCXLxMESI(RunFullSystem, Debug):
         path = OrderedReplyForwardingProtocols().get_cur_protocol_path()
         protocol_1_name: str = "MESI.pcc"
         protocol_2_name: str = "CXL2_ord.pcc"
-        protocol_3_name: str = "MESI.pcc"
+        protocol_3_name: str = "RCCHetero.pcc"
         self.run_test(protocol_1_name, protocol_2_name, protocol_3_name, path,
                       [self.translation_table_first, self.translation_table_second], [self.translation_table_third, self.translation_table_second],
                       self.sc_litmus_test_gen.litmus_test_list, self.sc_litmus_test_gen.litmus_test_list, eq_checks=eq_checks, cc_num = cc_num)
