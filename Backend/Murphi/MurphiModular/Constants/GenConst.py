@@ -95,6 +95,17 @@ class GenConst(TemplateHandler, Debug):
     def gen_cluster_network_const_str(self, clusters: List[Cluster], config: BaseConfig):
         const_str = "---- Cluster network constants" + self.nl
 
+        sum = 0
+        archs = set()
+        for c in clusters:
+            for arch in c.get_machine_architectures():
+                if str(arch) in archs:
+                    continue
+                archs.add(str(arch))
+                if "cache" in str(arch):
+                    sum += c.get_machine_architecture_count(arch)
+        const_str += self.tab + "CACHE_NET_MAX : " + str(sum * config.c_adr_max + 1) + self.end
+
         for c in clusters:
             sum = 0
             archs = set()

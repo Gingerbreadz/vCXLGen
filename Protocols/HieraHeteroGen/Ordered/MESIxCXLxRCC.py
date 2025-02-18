@@ -26,36 +26,38 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import pathlib
+from Algorithms.HeteroGen.RunTestFullSystem import RunFullSystem
 import MurphiLitmusTests.LitmusTests.SC.GenLitmusTests
 import MurphiLitmusTests.LitmusTests.RC.GenLitmusTests
 
-from Algorithms.HeteroGen.RunTestHH import RunHH
 from Protocols.MOESI_Directory.RF_Dir.ord_net.Run_Ord_RF import OrderedReplyForwardingProtocols
 from Debug.Monitor.ClassDebug import Debug
 
 
 # Ordered reply forwarding communication pattern protocols
-class MESIxCXL_HH(RunHH, Debug):
+class MESIxCXLxRCC(RunFullSystem, Debug):
 
     translation_table_first = {'load': ['load'], 'store': ['store']} # MESI
-    translation_table_second = {'load': ['load'], 'store': ['store']} # MESI
+    translation_table_second = {'load': ['load'], 'store': ['store'], 'acquire': ['load'], 'release': ['store']} # CXL
+    translation_table_third = {'load': ['acquire'], 'store': ['release']}  # RCC
 
     def __init__(self, eq_checks = False, cc_num = 2):
-        RunHH.__init__(self)
+        RunFullSystem.__init__(self)
         Debug.__init__(self, True)
         self.sc_litmus_test_gen = MurphiLitmusTests.LitmusTests.SC.GenLitmusTests.GenLitmusTests()
         self.rc_litmus_test_gen = MurphiLitmusTests.LitmusTests.RC.GenLitmusTests.GenLitmusTests()
 
-        self.run_protocol_tests(eq_checks, cc_num=cc_num)
+        self.run_protocol_tests(eq_checks, cc_num = cc_num)
 
     def run_protocol_tests(self, eq_checks = False, cc_num = 2):
         path = OrderedReplyForwardingProtocols().get_cur_protocol_path()
         protocol_1_name: str = "MESI.pcc"
         protocol_2_name: str = "CXL2_ord.pcc"
-        self.run_test(protocol_1_name, protocol_2_name, path,
-                      [self.translation_table_first, self.translation_table_second],
-                      self.sc_litmus_test_gen.litmus_test_list, self.rc_litmus_test_gen.litmus_test_list, eq_checks=eq_checks, cc_num=cc_num)
-        self.psuccess(f"HieraHeteroGen {protocol_1_name.split('.')[0]} x {protocol_2_name.split('.')[0]} execution complete")
+        protocol_3_name: str = "RCCHetero.pcc"
+        self.run_test(protocol_1_name, protocol_2_name, protocol_3_name, path,
+                      [self.translation_table_first, self.translation_table_second], [self.translation_table_third, self.translation_table_second],
+                      self.sc_litmus_test_gen.litmus_test_list, self.sc_litmus_test_gen.litmus_test_list, eq_checks=eq_checks, cc_num = cc_num)
+        self.psuccess(f"HieraHeteroGen {protocol_1_name.split('.')[0]} x {protocol_2_name.split('.')[0]} x {protocol_3_name.split('.')[0]} execution complete")
 
     @staticmethod
     def get_cur_protocol_path():

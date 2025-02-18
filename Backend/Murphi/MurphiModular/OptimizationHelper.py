@@ -4,7 +4,7 @@ from Backend.Murphi.BaseConfig import BaseConfig
 
 class OptimizationHelper:
 
-    supported_nets = ["req", "resp", "fwd"]
+    supported_nets = ["req", "req2", "resp", "fwd", "rwd", "birsp", "bisnp", "drs", "ndr"]
 
     def has_arch_net(arch: str, net: str, config: BaseConfig):
         if not config.remove_unused_channels:

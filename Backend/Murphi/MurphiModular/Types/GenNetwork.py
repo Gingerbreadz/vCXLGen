@@ -78,6 +78,7 @@ class GenNetwork(TemplateBase, Debug):
                     for net in global_arch.network.ordered_networks:
                         nets.add(net)
                 for arch in cluster.get_machine_architectures():
+                    # breakpoint()
                     if str(arch) in archs:
                         continue
                     archs.add(str(arch))
@@ -100,7 +101,9 @@ class GenNetwork(TemplateBase, Debug):
                                         if OptimizationHelper.can_arch_recieve(str(arch), str(net), str(c)):
                                             net_max += str(c) + "_NET_MAX+"
                                 net_max = net_max.removesuffix("+") + ")"
-                                
+                                if net_max == "()":
+                                    net_max = "1"
+
                                 objstr += (MurphiTokens.k_net + net + "_" + str(arch) + ": array[" + MurphiTokens.k_obj_set + str(arch)
                                     + point_to_point_ext_str + "] of array[0.." + net_max + "-1] of "
                                         + MurphiTokens.k_message + self.end)

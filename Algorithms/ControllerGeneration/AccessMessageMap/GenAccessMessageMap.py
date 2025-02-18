@@ -44,7 +44,6 @@ from Debug.Monitor.ClassDebug import Debug
 class GenAccessMessageMap(Debug):
 
     auto_detect_access_appearance_at_memory: bool = True
-
     hidden_accesses: bool = True
 
     def __init__(self, level: Level):
@@ -346,6 +345,13 @@ class GenAccessMessageMap(Debug):
         
             # The actual access is a hidden access type
             orig_access = cache_dir_tuple[0].init_guard
+
+            if not isinstance(access, BaseAccess.Access):
+                continue
+
+            if not isinstance(orig_access, BaseAccess.Access):
+                continue
+
             # TODO do a smarter nesting of transition trees
             #   This makes the top-level protocol effectively MI (correct)
             #   For now, just Disable hidden_accesses (incorrect)
@@ -386,7 +392,7 @@ class GenAccessMessageMap(Debug):
                         if raccess != access:
                             relabel = True
                             # Generate new base message
-                            #base_message = self.gen_new_base_message(cache_dir_tuple[1], access)
+                            # base_message = self.gen_new_base_message(cache_dir_tuple[1], access)
                             break
  
                 if relabel:
@@ -428,7 +434,7 @@ class GenAccessMessageMap(Debug):
                             if rreq != new_req_msg:
                                 relabel = True
                                 # Generate new base message
-                                new_fwd_msg = self.gen_new_base_message(msg_match, access)
+                                # new_fwd_msg = self.gen_new_base_message(msg_match, access)
                                 break
                     if relabel:
                         break
@@ -450,6 +456,8 @@ class GenAccessMessageMap(Debug):
         for stable_state in self.level.cache.stable_states:
             for evict_transition in stable_state.evict_miss:
                 evict_guard: Evict = evict_transition.guard
+                if stable_state not in self.cache_state_fwd_message_access_map:
+                    self.cache_state_fwd_message_access_map[stable_state] = {}
                 self.cache_state_fwd_message_access_map[stable_state][evict_guard] = store_access
 
     def Print_Dict(self, header, map_dict):

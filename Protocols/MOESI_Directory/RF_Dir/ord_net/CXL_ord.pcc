@@ -164,6 +164,7 @@ Directory {
     Data cl;
     set[NrCaches] ID cache;
     ID owner;
+    ID requestor;
 } directory;
 
 Message Req{};
@@ -274,7 +275,7 @@ Architecture cache {
             // when BISnpData:
                 // Same as BISnpInv, but should go back to S state and reply with BIRspS
             when BISnpInv:
-                msg = Rwd(BIConflict, ID, BISnpInv.src);
+                msg = Req(BIConflict, ID, BISnpInv.src);
                 rwd.send(msg);
 
                 await{
@@ -311,13 +312,13 @@ Architecture cache {
                         await{
                             when Cmp_E:
                                 // We are no longer clean, wait for MemData
-				await{
-				    when MemData:
-				        cl=MemData.cl;
+                                await{
+                                    when MemData:
+                                        cl=MemData.cl;
                                         store;
                                         State = M;
-				        break;
-			        }
+                                        break;
+                                }
                         }
                 }
         }
@@ -602,9 +603,24 @@ Architecture directory {
        //   - Only clean sharers, so can receive MemClnEvct or BIRspI, all should be in the await block (messages shouldn't block each other)
        // 3- Once all are invalidated, reply back to requestor
 
+       requestor = MemRd_A_SnpInv.src;
+
        // Requestor shouldn't be a sharer, since he requested the Data, but this cannot hurt
        if cache.contains(MemRd_A_SnpInv.src){
            cache.del(MemRd_A_SnpInv.src);
+
+           if cache.count() == 0{
+                msg = Ndr(Cmp_E, ID, requestor);
+                ndr.send(msg);
+                msg = Drs(MemData, ID, requestor, cl);
+                drs.send(msg);
+                // Finally, update internal state
+                owner = requestor;
+                cache.clear();
+                undefine requestor;
+                State=M;
+                break;
+           }
        }
 
        msg = BISnp(BISnpInv, ID, ID);
@@ -615,13 +631,14 @@ Architecture directory {
                 
                 // Once all are invalidated, reply to requestor with perm and data
                 if cache.count() == 0{
-                    msg = Ndr(Cmp_E, ID, MemRd_A_SnpInv.src);
+                    msg = Ndr(Cmp_E, ID, requestor);
                     ndr.send(msg);
-                    msg = Drs(MemData, ID, MemRd_A_SnpInv.src, cl);
+                    msg = Drs(MemData, ID, requestor, cl);
                     drs.send(msg);
                     // Finally, update internal state
-                    owner = MemRd_A_SnpInv.src;
+                    owner = requestor;
                     cache.clear();
+                    undefine requestor;
                     State=M;
                     break;
                 }
@@ -648,9 +665,25 @@ Architecture directory {
        //   - Only clean sharers, so can receive MemClnEvct or BIRspI, all should be in the await block (messages shouldn't block each other)
        // 3- Once all are invalidated, reply back to requestor
 
+       requestor = MemInv_A_SnpInv.src;
+
        // Requestor shouldn't be a sharer, since he requested the Data, but this cannot hurt
        if cache.contains(MemInv_A_SnpInv.src){
            cache.del(MemInv_A_SnpInv.src);
+
+           if cache.count() == 0{
+               msg = Ndr(Cmp_E, ID, requestor);
+               ndr.send(msg);
+               // Requestor didn't ask for data
+               //msg = Drs(MemData, ID, requestor, cl);
+               //drs.send(msg);
+               // Finally, update internal state
+               owner = requestor;
+               cache.clear();
+               undefine requestor;
+               State=M;
+               break;
+           }
        }
 
        msg = BISnp(BISnpInv, ID, ID);
@@ -661,14 +694,15 @@ Architecture directory {
                 
                 // Once all are invalidated, reply to requestor with perm and data
                 if cache.count() == 0{
-                    msg = Ndr(Cmp_E, ID, MemInv_A_SnpInv.src);
+                    msg = Ndr(Cmp_E, ID, requestor);
                     ndr.send(msg);
                     // Requestor didn't ask for data
-                    // msg = Drs(MemData, ID, MemInv_A_SnpInv.src, cl);
-                    // drs.send(msg);
+                    //msg = Drs(MemData, ID, requestor, cl);
+                    //drs.send(msg);
                     // Finally, update internal state
-                    owner = MemInv_A_SnpInv.src;
+                    owner = requestor;
                     cache.clear();
+                    undefine requestor;
                     State=M;
                     break;
                 }
@@ -712,18 +746,21 @@ Architecture directory {
        msg = BISnp(BISnpData, ID, owner);
        bisnp.send(msg);
 
+       requestor = MemRd_S_SnpData.src;
+
        await{
            when BIRspS:
                // Completion
                undefine owner;
                cache.add(BIRspS.src);
-               cache.add(MemRd_S_SnpData.src);
+               cache.add(requestor);
 
-               msg = Ndr(Cmp_S, ID, MemRd_S_SnpData.src);
+               msg = Ndr(Cmp_S, ID, requestor);
                ndr.send(msg);
-               msg = Drs(MemData, ID, MemRd_S_SnpData.src, cl);
+               msg = Drs(MemData, ID, requestor, cl);
                drs.send(msg);
-               
+
+               undefine requestor;
                State=S;
                break;
 
@@ -732,12 +769,13 @@ Architecture directory {
                cache.del(BIRspI.src);
                undefine owner;
 
-               msg = Ndr(Cmp_S, ID, MemRd_S_SnpData.src);
+               msg = Ndr(Cmp_S, ID, requestor);
                ndr.send(msg);
-               msg = Drs(MemData, ID, MemRd_S_SnpData.src, cl);
+               msg = Drs(MemData, ID, requestor, cl);
                drs.send(msg);
 
-               cache.add(MemRd_S_SnpData.src);
+               cache.add(requestor);
+               undefine requestor;
                State=S;
                break;
 
@@ -782,18 +820,21 @@ Architecture directory {
        msg = BISnp(BISnpInv, ID, owner);
        bisnp.send(msg);
 
+       requestor = MemRd_A_SnpInv.src;
+
        await{
            when BIRspI:
                // Completion
                cache.del(BIRspI.src);
                undefine owner;
 
-               msg = Ndr(Cmp_E, ID, MemRd_A_SnpInv.src);
+               msg = Ndr(Cmp_E, ID, requestor);
                ndr.send(msg);
-               msg = Drs(MemData, ID, MemRd_A_SnpInv.src, cl);
+               msg = Drs(MemData, ID, requestor, cl);
                drs.send(msg);
 
-               owner = MemRd_A_SnpInv.src;
+               owner = requestor;
+               undefine requestor;
                cache.clear();
                State=M;
                break;
@@ -870,18 +911,21 @@ Architecture directory {
        msg = BISnp(BISnpData, ID, owner);
        bisnp.send(msg);
 
+       requestor = MemRd_S_SnpData.src;
+
        await{
            when BIRspS:
                // Completion
                undefine owner;
                cache.add(BIRspS.src);
-               cache.add(MemRd_S_SnpData.src);
+               cache.add(requestor);
 
-               msg = Ndr(Cmp_S, ID, MemRd_S_SnpData.src);
+               msg = Ndr(Cmp_S, ID, requestor);
                ndr.send(msg);
-               msg = Drs(MemData, ID, MemRd_S_SnpData.src, cl);
+               msg = Drs(MemData, ID, requestor, cl);
                drs.send(msg);
-               
+
+               undefine requestor;
                State=S;
                break;
 
@@ -889,13 +933,14 @@ Architecture directory {
                // Completion
                undefine owner;
                cache.del(BIRspI.src);
-               cache.add(MemRd_S_SnpData.src);
+               cache.add(requestor);
 
-               msg = Ndr(Cmp_S, ID, MemRd_S_SnpData.src);
+               msg = Ndr(Cmp_S, ID, requestor);
                ndr.send(msg);
-               msg = Drs(MemData, ID, MemRd_S_SnpData.src, cl);
+               msg = Drs(MemData, ID, requestor, cl);
                drs.send(msg);
 
+               undefine requestor;
                State=S;
                break;
 
@@ -940,6 +985,8 @@ Architecture directory {
        msg = BISnp(BISnpInv, ID, owner);
        bisnp.send(msg);
 
+       requestor = MemRd_A_SnpInv.src;
+
        await{
            when BIRspI:
                // Completion
@@ -950,12 +997,13 @@ Architecture directory {
                cache.del(BIRspI.src);
                undefine owner;
 
-               msg = Ndr(Cmp_E, ID, MemRd_A_SnpInv.src);
+               msg = Ndr(Cmp_E, ID, requestor);
                ndr.send(msg);
-               msg = Drs(MemData, ID, MemRd_A_SnpInv.src, cl);
+               msg = Drs(MemData, ID, requestor, cl);
                drs.send(msg);
 
-               owner = MemRd_A_SnpInv.src;
+               owner = requestor;
+               undefine requestor;
                cache.clear();
                State=M;
                break;
