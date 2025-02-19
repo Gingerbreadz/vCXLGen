@@ -97,6 +97,12 @@ class GenAccessRuleSet(TemplateHandler, Debug):
                 if not config.enable_evicts and isinstance(guard, BaseAccess.Evict):
                     continue
 
+                #
+                if config.disable_eviction_for:
+                    import re
+                    if re.search(config.disable_eviction_for, str(arch)) and isinstance(guard, BaseAccess.Evict):
+                        continue
+
                 access_rules_str += self.gen_access_rule(arch, state_transition_dict[state][guard], config) + self.nl
         return access_rules_str
 

@@ -163,8 +163,12 @@ class GenNetworkFunc(TemplateHandler, Debug):
 
     def gen_unordered_send_func(self, clusters: List[Cluster]):
         network_str = ""
+        nets = set()
         for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
                 for unordered_network in global_arch.network.unordered_networks:
+                    if str(unordered_network) in nets:
+                        continue
+                    nets.add(str(unordered_network))
                     network_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_unordered_network_func),
                                                         [str(unordered_network),
                                                          MurphiTokens.c_unordered_const,
@@ -449,6 +453,8 @@ class GenNetworkFunc(TemplateHandler, Debug):
                         body_str += self.tab + "cnt_" + str(network) + "_" + arch + "[dst] := 0" + self.end
                 
                 body_str += "endfor" + self.end + self.nl
+
+            body_str += self.gen_unordered_network_reset_str(unordered_network_set)
                 
             return self.add_tabs(body_str, 1)
 

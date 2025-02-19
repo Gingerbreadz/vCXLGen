@@ -401,10 +401,10 @@ k_fail_list = [k_fail, k_litmus_fail, k_dead, k_not_found, k_queue_to_small]
 # Minimum system memory that is kept free
 min_free_sys_memory = 300000
 # Machine count memory assignment suggestions
-k_machines = {1: 32000,
-              2: 32000,
-              3: 64000,
-              4: 64000}
+k_machines = {1: 3500,
+              2: 3500,
+              3: 21300,
+              4: 21300}
 # Default thread memory if not thread count is provided
 def_memory = 32000
 # Maximum amount of memory a litmus test can allocate

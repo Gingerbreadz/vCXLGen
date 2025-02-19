@@ -48,11 +48,12 @@ def _run_murphi_modular_base(clusters: List[Cluster],
                              litmus_test: Union[LitmusTest, None] = None,
                              run_SSP: bool = False,
                              custom_dir: str = '',
-                             eq_checks: bool = False,
-                             full_sys: bool = False,
-                             cc_num=2,
-                             minimal=False,
-                             prefetch_count=0,
+                             config: dict = {},
+                            #  eq_checks: bool = False,
+                            #  full_sys: bool = False,
+                            #  cc_num=2,
+                            #  minimal=False,
+                            #  prefetch_count=0,
                              ) -> Tuple[ModularMurphi, str]:
     def_path = os.getcwd()
 
@@ -63,26 +64,23 @@ def _run_murphi_modular_base(clusters: List[Cluster],
         path += litmus_test.test_name.split('.')[0]
     make_dir(path)
 
-    murphi_desc = ModularMurphi(clusters, "MU_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config={"use_per_machine_queues":True, "remove_unused_channels":True, "full_sys": full_sys, "minimize_queue_size": True, "prefetch_count": prefetch_count}))
-    
-    if not minimal:
-        # Generate Murphi file description
-        murphi_desc = ModularMurphi(clusters, filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config={"full_sys": full_sys}))
-    
-    
-    if not minimal:
+    murphi_desc = ModularMurphi(clusters, "MU_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=config|{"use_per_machine_queues":True, "remove_unused_channels":True, "minimize_queue_size": True}))
+
+    if not config.get("minimal", False):
+        murphi_desc = ModularMurphi(clusters, filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=config))
 
         # Rumur version that should be as similar to MURPHI as possible
         # ModularMurphi(clusters, "RMR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"full_sys": full_sys}))
 
-        ModularMurphi(clusters, "RMR_MR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"full_sys": full_sys, "use_mrecords": True, "substitute_unions": False}))
+        ModularMurphi(clusters, "RMR_MR_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|config|{"use_mrecords": True, "substitute_unions": False}))
 
-        if not eq_checks:
+        if not config.get("eq_checks", False):
             # Rumur version for the compositional verification, with abstractions on L2 & access based litmus tests for each L1
-            ModularMurphi(clusters, "RMR_LIVE_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"access_based_liveness":True, "full_sys": full_sys}))
-            ModularMurphi(clusters, "RMR_MR_LIVE_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"access_based_liveness":True, "full_sys": full_sys, "use_mrecords": True, "substitute_unions": False}))
+            ModularMurphi(clusters, "RMR_LIVE_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|config|{"access_based_liveness":True}))
+            ModularMurphi(clusters, "RMR_MR_LIVE_" + filename, False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|config|{"access_based_liveness":True, "use_mrecords": True, "substitute_unions": False}))
 
-        if eq_checks:
+        else:
+            cc_num = config.get("cc_num", 2)
             # Rumur version for the compositional verification, with abstractions on L2 & access based litmus tests for each L1
             ModularMurphi(clusters, f"COMP_Model_{cc_num}CC", False, litmus_test, base_config=BaseConfig(clusters, litmus_test, config=BaseConfig.RumurDefault()|{"eq_effective_mi_downgrade":True, "access_based_liveness":True, "use_mrecords": True, "substitute_unions": False}))
 
@@ -286,14 +284,15 @@ def GenerateMurphi(clusters: List[Cluster],
                   litmus_test: Union[LitmusTest, None] = None,
                   custom_dir: str = '',
                   run_SSP: bool = False,
-                  eq_checks: bool = False,
-                  full_sys: bool = False,
-                  cc_num=2,
-                  minimal=False,
-                  prefetch_count=0,
+                  config: dict = {},
+                #   eq_checks: bool = False,
+                #   full_sys: bool = False,
+                #   cc_num=2,
+                #   minimal=False,
+                #   prefetch_count=0,
                   ):
 
-    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir, eq_checks=eq_checks, full_sys=full_sys, cc_num=cc_num, minimal=minimal, prefetch_count=prefetch_count)
+    murphi_desc, def_path = _run_murphi_modular_base(clusters, filename, litmus_test, run_SSP, custom_dir, config=config)
     sleep(0.10)
 
     murphi_desc.gen_make()

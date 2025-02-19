@@ -121,8 +121,8 @@ class RunFullSystem(Debug):
         #cluster_1.update_machine_archs(directory_machine_1.get_arch_list()[0], hhgen_ctrl_a)
         #cluster_2.update_machine_archs(hhcache_machine_2.get_arch_list()[0], hhgen_ctrl_a)
 
-        if not litmus:
-            GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, eq_checks=eq_checks, full_sys=True, cc_num=cc_num)
+        if not litmus: # TODO: REENABLE, only disabled currently for quicker generation
+            GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, config={"eq_checks":eq_checks, "full_sys":True, "cc_num":cc_num})
 
         #RunMurphiCheck([cluster_1], sys_name, None, 4000, 'DeadlockFreedom')
         #RunSLICCModular(cluster_1, sys_name)
@@ -202,7 +202,7 @@ class RunFullSystem(Debug):
         # TODO double check if prefetch_count is determined corretly
         # TODO : remove to generate all
         if len(load_perm[0]) > 0:
-            GenerateMurphi([cluster_1A, cluster_2, cluster_1B], file_name, mach_litmus_test, minimal=True, full_sys=True, prefetch_count=len(load_perm[0]))
+            GenerateMurphi([cluster_1A, cluster_2, cluster_1B], file_name, mach_litmus_test, config={"minimal":True, "full_sys":True, "prefetch_count":len(load_perm[0]), "disable_eviction_for":"cache"})
 
         dir_up()
         dir_up()
