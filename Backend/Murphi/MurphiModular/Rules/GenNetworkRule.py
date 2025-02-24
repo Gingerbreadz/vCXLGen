@@ -54,7 +54,7 @@ class GenNetworkRule(TemplateHandler, Debug):
 
         ruleset_str_list.append(self.gen_fifo_rules(ordered_net_list + unordered_net_list, architecture_list))
         ruleset_str_list.append(self.gen_ordered_network_ruleset(ordered_net_list, architecture_list, config))
-        ruleset_str_list.append(self.gen_unordered_network_ruleset(unordered_net_list, architecture_list))
+        ruleset_str_list.append(self.gen_unordered_network_ruleset(unordered_net_list, architecture_list, config))
 
         murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(ruleset_str_list), 1))
 
@@ -151,16 +151,26 @@ class GenNetworkRule(TemplateHandler, Debug):
 
         return "".join(ruleset_str_list)
 
-    def gen_unordered_network_ruleset(self, unordered_network_list: List[str], architecture_list: List[str]) -> str:
+    def gen_unordered_network_ruleset(self, unordered_network_list: List[str], architecture_list: List[str], config: BaseConfig) -> str:
         ruleset_str_list = []
-        for network_str in unordered_network_list:
-            cond_rule_str = self.gen_network_rules(network_str, architecture_list,
-                                                   MurphiTemplates.f_unordered_rule_fifo,
-                                                   MurphiTemplates.f_unordered_rule_inner)
+        if not config.use_per_machine_queues:
+            for network_str in unordered_network_list:
+                cond_rule_str = self.gen_network_rules(network_str, architecture_list,
+                                                    MurphiTemplates.f_unordered_rule_fifo,
+                                                    MurphiTemplates.f_unordered_rule_inner)
 
-            ruleset_str_list.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_unordered_rule),
-                                                         [network_str, cond_rule_str]) + self.nl + self.nl)
+                ruleset_str_list.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_unordered_rule),
+                                                            [network_str, cond_rule_str]) + self.nl + self.nl)
+        else:
+            for arch_str in architecture_list:
+                ruleset_str_list.append("-- " + arch_str + self.nl)
 
+                for network_str in unordered_network_list:
+                    if OptimizationHelper.has_arch_net(arch_str, network_str, config):
+                        ruleset_str_list.append(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_u_rule),
+                                                            [network_str, arch_str])
+                                        + self.nl)
+                ruleset_str_list.append(self.nl)
         return "".join(ruleset_str_list)
 
     def gen_network_rules(self, network_str: str,

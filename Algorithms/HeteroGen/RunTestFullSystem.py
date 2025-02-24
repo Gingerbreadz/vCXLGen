@@ -76,7 +76,7 @@ class RunFullSystem(Debug):
         protocol_2 = open(filename_2).read()
         protocol_3 = open(filename_3).read()
         self.sys_name = filename_1.split(".")[0] + "x" + filename_2.split(".")[0] + "x" + filename_3.split(".")[0]
-        make_dir("FullSystem_NoCE_PF")
+        make_dir("FullSystem_NoCE")
         make_dir(self.sys_name)
 
         # Generate level based on given protocol and check input SSP
@@ -117,12 +117,13 @@ class RunFullSystem(Debug):
         cluster_1B = Cluster(
             tuple([cache_machine_1B] * cc_num) + tuple([hhcache_machineB]),
             'C1B', False)
+        self.sys_list = {"C1A": filename_1.split(".")[0], "C2": filename_2.split(".")[0], "C1B": filename_3.split(".")[0]}
 
         #cluster_1.update_machine_archs(directory_machine_1.get_arch_list()[0], hhgen_ctrl_a)
         #cluster_2.update_machine_archs(hhcache_machine_2.get_arch_list()[0], hhgen_ctrl_a)
 
         if not litmus: # TODO: REENABLE, only disabled currently for quicker generation
-            GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, config={"eq_checks":eq_checks, "full_sys":True, "cc_num":cc_num})
+            GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, config={"eq_checks":eq_checks, "full_sys":True, "cc_num":cc_num, "sys_list": self.sys_list})
 
         #RunMurphiCheck([cluster_1], sys_name, None, 4000, 'DeadlockFreedom')
         #RunSLICCModular(cluster_1, sys_name)
@@ -200,9 +201,7 @@ class RunFullSystem(Debug):
         mach_litmus_test.test_name = mach_litmus_test.test_name.split('.')[0] + litmus_test_thread_perm
 
         # TODO double check if prefetch_count is determined corretly
-        # TODO : remove to generate all
-        if len(load_perm[0]) > 0:
-            GenerateMurphi([cluster_1A, cluster_2, cluster_1B], file_name, mach_litmus_test, config={"minimal":True, "full_sys":True, "prefetch_count":len(load_perm[0]), "disable_eviction_for":"cache"})
+        GenerateMurphi([cluster_1A, cluster_2, cluster_1B], file_name, mach_litmus_test, config={"minimal":True, "full_sys":True, "prefetch_count":len(load_perm[0]), "disable_eviction_for":"cache", "sys_list": self.sys_list})
 
         dir_up()
         dir_up()

@@ -399,7 +399,7 @@ k_fail_list = [k_fail, k_litmus_fail, k_dead, k_not_found, k_queue_to_small]
 
 
 # Minimum system memory that is kept free
-min_free_sys_memory = 300000
+min_free_sys_memory = 100000
 # Machine count memory assignment suggestions
 k_machines = {1: 3500,
               2: 3500,
@@ -438,6 +438,7 @@ linux_io_lock = threading.Lock()
 mem_check_lock = threading.Lock()
 
 free_mem = int(virtual_memory().free / 2 ** 20) - min_free_sys_memory
+print('Free memory available: ' + str(free_mem) + ' MB')
 
 # Lock for shared data
 thread_lock = threading.Lock()

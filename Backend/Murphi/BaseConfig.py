@@ -116,6 +116,9 @@ class BaseConfig(Debug):
     # If set regex to match names of composents where evictions should be disabled
     disable_eviction_for = None
 
+    # Name of the generated setup
+    sys_list = []
+
     def __init__(self,  clusters: List[Cluster], litmus_test: Union[LitmusTest, None] = None, config = {}, machine_configs: List[MachineConfig] = []):
         Debug.__init__(self)
 
@@ -170,6 +173,8 @@ class BaseConfig(Debug):
             self.prefetch_count = config["prefetch_count"]
         if "disable_eviction_for" in config:
             self.disable_eviction_for = config["disable_eviction_for"]
+        if "sys_list" in config and config["sys_list"]:
+            self.sys_list = config["sys_list"]
         if "eq_check" in config:
             self.eq_check = config["eq_check"]
             self.eq_rhs = config["eq_rhs"]

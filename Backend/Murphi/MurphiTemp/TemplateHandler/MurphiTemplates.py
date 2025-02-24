@@ -65,6 +65,7 @@ class MurphiTemplates:
     f_pmq_tot_o_network_func_pop_missing = "Network/TotalOrdered/pmq_onetworkfunc_pop_missing.m"
     f_pmq_tot_o_network_ready = "Network/TotalOrdered/pmq_onetworkready.m"
     f_pmq_tot_o_rule = "Network/TotalOrdered/pmq_rule.m"
+    f_pmq_u_rule = "Network/Unordered/pmq_rule.m"
 
     f_pmq_tot_o_mr_func_send = "Network/TotalOrdered/pmq_mr_onetworkfunc_send.m"
     f_pmq_tot_o_mr_func_pop = "Network/TotalOrdered/pmq_mr_onetworkfunc_pop.m"

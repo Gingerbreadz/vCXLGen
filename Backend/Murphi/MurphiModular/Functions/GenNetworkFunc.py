@@ -55,7 +55,7 @@ class GenNetworkFunc(TemplateHandler, Debug):
         network_str = ""
 
         network_str += self.gen_ordered_send_func(clusters, config)
-        network_str += self.gen_unordered_send_func(clusters)
+        network_str += self.gen_unordered_send_func(clusters, config)
 
         # Generate Multicast functions if they exist
         network_str += self.gen_multicast_func(clusters, config)
@@ -67,7 +67,7 @@ class GenNetworkFunc(TemplateHandler, Debug):
         network_str += self.gen_network_ready_func(clusters, config)
 
         if config.prefetch_count > 0:
-            used_str =  self.gen_network_ready_func(clusters, config).replace("ready", "used").replace("(" + MurphiTokens.c_ordered_const + "-" + str(config.total_mach_cnt) + ")", "1")
+            used_str =  self.gen_network_ready_func(clusters, config).replace("ready", "used").replace("(" + MurphiTokens.c_ordered_const + "-" + str(config.total_mach_cnt) + ")", "1").replace("(" + MurphiTokens.c_unordered_const + "-" + str(config.total_mach_cnt) + ")", "1")
             used_str = used_str.replace("true;", "false ;").replace("false;", "true ;").replace("if !", "if ")
             network_str += used_str
             
@@ -161,19 +161,58 @@ class GenNetworkFunc(TemplateHandler, Debug):
 
         return network_str
 
-    def gen_unordered_send_func(self, clusters: List[Cluster]):
+    def gen_unordered_send_func(self, clusters: List[Cluster], config: BaseConfig) -> str:
         network_str = ""
         nets = set()
-        for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
-                for unordered_network in global_arch.network.unordered_networks:
-                    if str(unordered_network) in nets:
-                        continue
-                    nets.add(str(unordered_network))
-                    network_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_unordered_network_func),
-                                                        [str(unordered_network),
-                                                         MurphiTokens.c_unordered_const,
-                                                         MurphiTokens.k_machines]) \
-                                   + self.nl + self.nl
+        if not config.use_per_machine_queues:
+            for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
+                    for unordered_network in global_arch.network.unordered_networks:
+                        if str(unordered_network) in nets:
+                            continue
+                        nets.add(str(unordered_network))
+                        network_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_unordered_network_func),
+                                                            [str(unordered_network),
+                                                            MurphiTokens.c_unordered_const,
+                                                            MurphiTokens.k_machines]) \
+                                    + self.nl + self.nl
+        else:
+            if not config.enable_total_order_network:
+                self.perror("Per machine queues are only implemented for total ordered networks")
+            nets = set()
+            for cluster in clusters:
+                for global_arch in cluster.get_global_architectures():
+                    for net in global_arch.network.unordered_networks:
+                        nets.add(net)
+            for net in nets:
+                send_body_str = ""
+                archs = set()
+                for cluster in clusters:
+                    for arch in cluster.get_machine_architectures():
+                        if str(arch) in archs:
+                            continue
+                        archs.add(str(arch))
+
+                        if config.use_mrecords:
+                            self.perror("mrecords not supported for unordered networks")
+                        else:
+
+                            send_body_str += f"if Ismember(dst,OBJSET_{str(arch)}) then" +self.nl
+                            if OptimizationHelper.has_arch_net(str(arch), str(net), config):
+                                send_body_str += self.tab + self.tab + f"Assert (MultiSetCount(i:{str(net)}_{str(arch)}[dst], true) < U_NET_MAX) \"Too many messages to {str(arch)} {str(net)}\"" +self.end
+                                send_body_str += self.tab + self.tab + f"MultiSetAdd(msg, {str(net)}_{str(arch)}[dst])" +self.end
+                            else:
+                                send_body_str += self.tab + self.tab + f"error \"invalid optimiztaion: removed {str(net)}_{str(arch)}\";" + self.end
+                            send_body_str += self.tab + f"els"
+
+                network_str += f"procedure Send_{str(net)}(msg:Message; src: Machines;)" + self.end
+                network_str += "begin" + self.nl
+                network_str += self.tab + "alias dst : msg.dst do" + self.nl
+                network_str += self.tab + f"{send_body_str}e" + self.nl
+                network_str += self.tab +  self.tab + "error \"unknown send machine\";" + self.nl
+                network_str += self.tab + "endif;" + self.nl
+                network_str += self.tab + "endalias;" + self.nl
+                network_str += "end;" + self.nl + self.nl 
+                
         return network_str
 
     ## Generate multicast functions
@@ -328,7 +367,7 @@ class GenNetworkFunc(TemplateHandler, Debug):
 
             network_names.append(str(network))
 
-            if network.vc_type == network.k_unordered:
+            if network.vc_type == network.k_unordered and not config.use_per_machine_queues:
                 network_ready_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_unordered_network_ready_func),
                                                           [str(network), MurphiTokens.c_unordered_const,
                                                            str(subtraction_cnt)]) + self.nl
@@ -370,10 +409,13 @@ class GenNetworkFunc(TemplateHandler, Debug):
                 archs = set([str(arch) for cluster in clusters for arch in cluster.get_machine_architectures()])
                 for arch in archs:
                     if OptimizationHelper.has_arch_net(arch, str(network), config):
-                        body_str += "for dst:OBJSET_" + arch + " do" + self.nl + \
-                            self.tab + "if cnt_" + str(network) + "_" + arch + "[dst] >= (" + MurphiTokens.c_ordered_const + "-" + str(subtraction_cnt) + ") then" + self.nl + \
-                            self.tab + self.tab + "return false" + self.end + \
-                            self.tab + "endif" + self.end + "endfor" + self.end
+                        body_str += "for dst:OBJSET_" + arch + " do" + self.nl
+                        if network.vc_type == network.k_unordered:
+                            body_str += self.tab + "if MultisetCount(i:" + str(network) + "_" + arch + "[dst], isundefined(" + str(network) + "_" + arch + "[dst][i].mtype)) >= (" + MurphiTokens.c_unordered_const + "-" + str(subtraction_cnt) + ") then" + self.nl
+                        else:
+                            body_str += self.tab + "if cnt_" + str(network) + "_" + arch + "[dst] >= (" + MurphiTokens.c_ordered_const + "-" + str(subtraction_cnt) + ") then" + self.nl
+                        body_str += self.tab + self.tab + "return false" + self.end + \
+                                    self.tab + "endif" + self.end + "endfor" + self.end
                 
                 network_ready_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_pmq_tot_o_network_ready),
                                                           [str(network), self.add_tabs(body_str, 1)]) \
@@ -454,7 +496,11 @@ class GenNetworkFunc(TemplateHandler, Debug):
                 
                 body_str += "endfor" + self.end + self.nl
 
-            body_str += self.gen_unordered_network_reset_str(unordered_network_set)
+            for arch in archs:
+                for network in unordered_network_set:
+                    if OptimizationHelper.has_arch_net(arch, str(network), config):
+                        body_str += "undefine " + str(network) + "_" + arch + self.end
+            # body_str += self.gen_unordered_network_reset_str(unordered_network_set)
                 
             return self.add_tabs(body_str, 1)
 
