@@ -45,6 +45,7 @@ def get_executables(root_path: str = ''):
     for path, _, files in os.walk(root_path):
         for name in files:
             file_path = os.path.join(path, name)
+            file_path = os.path.abspath(file_path)
             if os.access(file_path, os.X_OK):
                 litmus_test_dict[file_path] = def_memory
                 litmus_test_result_dict[file_path] = k_not_served
@@ -59,12 +60,11 @@ def gen_exec_thread_list() -> bool:
 
     min_mem = def_memory
     for litmus_test_path in litmus_test_dict:
-        thread_count_list = re.findall('_nM\d+', litmus_test_path.rsplit('/', 1)[1])
-        if len(thread_count_list) == 1:
-            thread_count = re.findall('\d+', thread_count_list[0])[0]
-            if thread_count in k_machines:
-                litmus_test_dict[litmus_test_path] = k_machines[thread_count]
-                min_mem = min(min_mem, k_machines[thread_count])
+        thread_count_list = re.findall('_p', litmus_test_path.rsplit('/', 1)[1])
+        thread_count = len(thread_count_list)
+        if thread_count in k_machines:
+            litmus_test_dict[litmus_test_path] = k_machines[thread_count]
+            min_mem = min(min_mem, k_machines[thread_count])
 
     # Check if the minimum amount of memory required at least one of the tests is available
     free_mem_count = (int(virtual_memory().free / 2 ** 20) - min_free_sys_memory)
@@ -194,7 +194,7 @@ class MurphiWorkerThread(threading.Thread):
     def run_murphi(self, murphi_path: str):
         if self.file_exists(murphi_path):
             # Wait for memory to become free
-            while self.get_free_mem() < litmus_test_dict[murphi_path]:
+            while self.get_free_mem(litmus_test_dict[murphi_path]):
                 print('Worker Thread ' + str(self.t_id) + ': Waiting for free memory')
                 time.sleep(10)
 
@@ -205,6 +205,8 @@ class MurphiWorkerThread(threading.Thread):
             # Run Murphi executable & generate report file
             cmd = ["./" + murphi_test_name, "-tv", "-pr", "-m", str(litmus_test_dict[murphi_path])]
             report = self.run_subprocess_cmd(murphi_dir_path, cmd)
+
+            self.release_free_mem(litmus_test_dict[murphi_path])
 
             # Safe the report file atomically
             self.write_file(murphi_dir_path, murphi_test_name + "_results" + ".txt", report)
@@ -231,6 +233,8 @@ class MurphiWorkerThread(threading.Thread):
                 litmus_test_result_dict[murphi_path] = k_invariant
             elif "Litmus Test Failed" in report:
                 litmus_test_result_dict[murphi_path] = k_litmus_fail
+            elif k_queue_to_small in report:
+                litmus_test_result_dict[murphi_path] = k_queue_to_small
             elif "No error found" not in report:
                 litmus_test_result_dict[murphi_path] = k_fail
             else:
@@ -349,17 +353,29 @@ class MurphiWorkerThread(threading.Thread):
         return True
 
     @staticmethod
-    def get_free_mem() -> int:
+    def get_free_mem(req_mem: int) -> int:
+        global free_mem
         mem_check_lock.acquire()
         time.sleep(0.1)
-        free_mem = int(virtual_memory().free / 2 ** 20) - min_free_sys_memory
+        if req_mem < free_mem:
+            free_mem -= req_mem
+            mem_check_lock.release()
+            return False
+        else:
+            mem_check_lock.release()
+            return True
+    
+    @staticmethod
+    def release_free_mem(req_mem: int) -> int:
+        global free_mem
+        mem_check_lock.acquire()
+        free_mem += req_mem
         mem_check_lock.release()
-        return free_mem
 
     @staticmethod
     def calc_next_mem(mem: int) -> Union[int, str]:
         if mem < max_memory:
-            new_mem = mem * 2
+            new_mem = int(mem * 3)
             if new_mem < max_memory:
                 return new_mem
             else:
@@ -377,23 +393,23 @@ k_dead = 'Deadlock'
 k_invariant = 'Invariant'
 k_oom = 'Out of memory'
 k_not_found = 'File not found'
+k_queue_to_small = "not in index range"
 
-k_fail_list = [k_fail, k_litmus_fail, k_dead, k_not_found]
+k_fail_list = [k_fail, k_litmus_fail, k_dead, k_not_found, k_queue_to_small]
 
 
 # Minimum system memory that is kept free
-min_free_sys_memory = 4000
+min_free_sys_memory = 300000
 # Machine count memory assignment suggestions
-k_machines = {1: 4000,
-              2: 4000,
-              3: 4000,
-              4: 8000,
-              5: 32000}
+k_machines = {1: 3500,
+              2: 3500,
+              3: 21300,
+              4: 21300}
 # Default thread memory if not thread count is provided
-def_memory = 4000
+def_memory = 32000
 # Maximum amount of memory a litmus test can allocate
 #max_memory = virtual_memory().free
-max_memory = 64000
+max_memory = 1000000
 
 # Record the default path to dump result file into
 def_path = os.getcwd()
@@ -420,6 +436,9 @@ get_executables(litmus_test_files_path)
 linux_io_lock = threading.Lock()
 # Check free memory lock
 mem_check_lock = threading.Lock()
+
+free_mem = int(virtual_memory().free / 2 ** 20) - min_free_sys_memory
+
 # Lock for shared data
 thread_lock = threading.Lock()
 

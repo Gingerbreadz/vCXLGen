@@ -31,6 +31,7 @@ from typing import List
 from Backend.Common.TemplateHandler.TemplateHandler import TemplateHandler
 from Backend.Murphi.MurphiModular.LitmusTestFunc.GenMurphiLitmusTest import GenMurphiLitmusTestGen
 from Backend.Murphi.BaseConfig import BaseConfig
+from Backend.Murphi.MurphiTemp.TemplateHandler.MurphiTemplates import MurphiTemplates
 
 
 class GenLitmusTestTrace(TemplateHandler):
@@ -38,7 +39,11 @@ class GenLitmusTestTrace(TemplateHandler):
     def __init__(self, murphi_str: List[str], config: BaseConfig):
         TemplateHandler.__init__(self)
 
-        cpu_execution_str = GenMurphiLitmusTestGen().gen_murphi_litmus_test(config.litmus_test)
+        cpu_execution_str = ""
+        if config.prefetch_count > 0:
+            cpu_execution_str += self._stringReplKeys(self._openTemplate(MurphiTemplates.f_prefetch_phase_function), [str(config.prefetch_count)]) + self.nl
+        
+        cpu_execution_str += GenMurphiLitmusTestGen().gen_murphi_litmus_test(config.litmus_test)
         murphi_str.append("------" + __name__.replace('.', '/') + self.nl + self.add_tabs(cpu_execution_str, 1))
 
 

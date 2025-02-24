@@ -115,7 +115,7 @@ class GenConst(TemplateHandler, Debug):
                 archs.add(str(arch))
                 sum += c.get_machine_architecture_count(arch)
 
-            const_str += self.tab + str(c) + "_NET_MAX : " + str(sum * config.c_adr_max + 1) + self.end
+            const_str += self.tab + str(c) + "_NET_MAX : " + str(sum * (config.c_adr_max + 1) + 1) + self.end
 
         const_str += self.nl
 

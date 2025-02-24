@@ -45,7 +45,7 @@ def get_code_files(root_path: str = ''):
         for name in files:
             if name.endswith('.m'):
                 file_path = os.path.join(path, name)
-                litmus_thread_service_list.append(file_path)
+                litmus_thread_service_list.append(os.path.abspath(file_path))
     litmus_thread_service_list.sort()
     print("TOTAL NUMBER OF MURPHI FILES: " + str(len(litmus_thread_service_list)))
 
@@ -72,7 +72,7 @@ def spawn_threads():
         thread_list.append(t)
         t.start()
         # If too many threads are spawned to fast some workers might terminate with file system access exceptions
-        time.sleep(0.5)
+        time.sleep(1)
     time.sleep(0.1)
     print("Worker thread count: " + str(len(thread_list)))
 
@@ -248,8 +248,8 @@ class MurphiWorkerThread(threading.Thread):
 def_path = os.getcwd()
 
 # PATH TO THE MURPHI VARIABLE
-murphi_compiler_path = def_path + '/CMurphi'
-litmus_test_files_path = def_path + '/Protocols/MOESI_Directory/RF_Dir/ord_net/HeteroGen'
+murphi_compiler_path = '/home/julian/cxl/murphi/'
+litmus_test_files_path = def_path + 'Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem'
 
 # Find all litmus test murphi code files
 litmus_thread_service_list: List[str] = []

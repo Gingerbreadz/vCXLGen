@@ -107,7 +107,13 @@ class GenVars(TemplateHandler):
                             if config.eq_check and "RHS" in str(arch):
                                 network_str += self.gen_named_ordered_network(str(arch), net, "_BKUP", net_type=net_type)
                     network_str += self.nl
-
+            nets = set()
+            for global_arch in Cluster.get_global_architectures_in_clusters(clusters):
+                for unordered_network in global_arch.network.unordered_networks:
+                    if str(unordered_network) in nets:
+                        continue
+                    nets.add(str(unordered_network))
+                    network_str += self.gen_unordered_network(global_arch.network.unordered_networks[unordered_network])
         return network_str + self.nl + fifo_str + self.nl
 
     def gen_named_ordered_network(self, name: str, ordered_network: Channel, name_suffix : str = "", net_type : str = "") -> str:

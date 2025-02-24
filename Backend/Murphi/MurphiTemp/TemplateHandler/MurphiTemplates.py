@@ -56,6 +56,8 @@ class MurphiTemplates:
 
     f_store_func = "StoreFunction/StoreFunc.m"
 
+    f_prefetch_phase_function = "LitmusTemp/PrefetchingPhase.m"
+
     f_pmq_tot_o_network_func = "Network/TotalOrdered/pmq_onetworkfunc.m"
     f_pmq_tot_o_network_func_send = "Network/TotalOrdered/pmq_onetworkfunc_send.m"
     f_pmq_tot_o_network_func_pop = "Network/TotalOrdered/pmq_onetworkfunc_pop.m"

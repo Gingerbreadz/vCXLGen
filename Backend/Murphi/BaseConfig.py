@@ -107,8 +107,14 @@ class BaseConfig(Debug):
     # Configurations for individual machines
     machine_configs : List[MachineConfig] = []
 
+    # Prefetching instruction count
+    prefetch_count = 0
+
     # Enable to apply fixes for a full system check
     full_sys = False
+
+    # If set regex to match names of composents where evictions should be disabled
+    disable_eviction_for = None
 
     def __init__(self,  clusters: List[Cluster], litmus_test: Union[LitmusTest, None] = None, config = {}, machine_configs: List[MachineConfig] = []):
         Debug.__init__(self)
@@ -160,6 +166,10 @@ class BaseConfig(Debug):
             self.use_mrecords = config["use_mrecords"]
         if "full_sys" in config:
             self.full_sys = config["full_sys"]
+        if "prefetch_count" in config:
+            self.prefetch_count = config["prefetch_count"]
+        if "disable_eviction_for" in config:
+            self.disable_eviction_for = config["disable_eviction_for"]
         if "eq_check" in config:
             self.eq_check = config["eq_check"]
             self.eq_rhs = config["eq_rhs"]

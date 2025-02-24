@@ -70,6 +70,8 @@ class GenAccessRuleSet(TemplateHandler, Debug):
             if not ruleset_str:
                 continue
             ruleset_str = self.rule_set_body(arch, ruleset_str) + self.nl
+            if config.prefetch_count > 0:
+                ruleset_str = ruleset_str.replace("& network_ready()", "& network_ready() & !InPrefetchingPhase()")
             ruleset_str_list.append(ruleset_str)
 
         murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(ruleset_str_list), 1))
@@ -94,6 +96,12 @@ class GenAccessRuleSet(TemplateHandler, Debug):
                 # Evicts disabled by configuration flag
                 if not config.enable_evicts and isinstance(guard, BaseAccess.Evict):
                     continue
+
+                #
+                if config.disable_eviction_for:
+                    import re
+                    if re.search(config.disable_eviction_for, str(arch)) and isinstance(guard, BaseAccess.Evict):
+                        continue
 
                 access_rules_str += self.gen_access_rule(arch, state_transition_dict[state][guard], config) + self.nl
         return access_rules_str
