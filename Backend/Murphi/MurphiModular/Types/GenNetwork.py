@@ -77,7 +77,9 @@ class GenNetwork(TemplateBase, Debug):
                 nets = set()
                 for global_arch in cluster.get_global_architectures():
                     for net in global_arch.network.ordered_networks:
-                        nets.add(net)
+                        nets.add((net, False))
+                    for unet in global_arch.network.unordered_networks:
+                        nets.add((unet, True))
                 for arch in cluster.get_machine_architectures():
                     # breakpoint()
                     if str(arch) in archs:
@@ -93,21 +95,26 @@ class GenNetwork(TemplateBase, Debug):
                                 + point_to_point_ext_str + "] of 0.." + MurphiTokens.c_ordered_const + self.end)
                     
                     else:
-                        for net in nets:
+                        for (net, is_unordered) in nets:
                             if OptimizationHelper.has_arch_net(str(arch), str(net), config):
                                 net_max = "("
 
                                 for c in clusters:
                                     if arch in c.get_machine_architectures():
-                                        if OptimizationHelper.can_arch_recieve(str(arch), str(net), str(c)):
+                                        if OptimizationHelper.can_arch_recieve(str(arch), str(net), str(c), config):
                                             net_max += str(c) + "_NET_MAX+"
                                 net_max = net_max.removesuffix("+") + ")"
                                 if net_max == "()":
                                     net_max = "1"
 
-                                objstr += (MurphiTokens.k_net + net + "_" + str(arch) + ": array[" + MurphiTokens.k_obj_set + str(arch)
-                                    + point_to_point_ext_str + "] of array[0.." + net_max + "-1] of "
+                                if is_unordered:
+                                    objstr += (MurphiTokens.k_net + net + "_" + str(arch) + ": array[" + MurphiTokens.k_obj_set + str(arch)
+                                    + point_to_point_ext_str + "] of multiset[" + net_max + "-1] of "
                                         + MurphiTokens.k_message + self.end)
+                                else:
+                                    objstr += (MurphiTokens.k_net + net + "_" + str(arch) + ": array[" + MurphiTokens.k_obj_set + str(arch)
+                                        + point_to_point_ext_str + "] of array[0.." + net_max + "-1] of "
+                                            + MurphiTokens.k_message + self.end)
 
                         objstr += (MurphiTokens.k_net + str(arch) + "_cnt" + ": array[" + MurphiTokens.k_obj_set + str(arch)
                             + point_to_point_ext_str + "] of 0.." + MurphiTokens.c_ordered_const + self.end)
