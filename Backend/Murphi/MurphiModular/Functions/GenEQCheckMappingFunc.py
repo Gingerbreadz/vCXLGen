@@ -30,6 +30,7 @@ from typing import List, Dict
 
 from Backend.Murphi.MurphiModular.EqCheckHelper import EqCheckHelper
 from Backend.Murphi.MurphiModular.OptimizationHelper import OptimizationHelper
+from Backend.Murphi.MurphiModular.Types.GenMessage import GenMessage
 from DataObjects.ClassCluster import Cluster
 
 from Backend.Murphi.BaseConfig import BaseConfig
@@ -81,8 +82,13 @@ class GenEQCheckMappingFunc(TemplateHandler, Debug):
         
         functions += self.tab + "----" + __name__.replace('.','/') +  " : MessageComparisonFunctions" + self.nl
         template = MurphiTemplates.f_eq_mr_msg_func if config.use_mrecords else MurphiTemplates.f_eq_msg_func
-        functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
+        msg_comp = self.add_tabs(self._stringReplKeys(self._openTemplate(template),
                                                           []), 2) + self.nl
+        msg_record = []
+        GenMessage(msg_record, clusters, config)
+        if "L2" not in ''.join(msg_record):
+            msg_comp = msg_comp.replace("L2", "L1")
+        functions += msg_comp
 
         functions += self.tab + "----" + __name__.replace('.','/') +  " : BackupFunctions" + self.nl
         functions += self.gen_rhs_backup(EqCheckHelper.get_machine_types(clusters), config)

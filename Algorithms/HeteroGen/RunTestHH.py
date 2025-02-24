@@ -109,7 +109,7 @@ class RunHH(Debug):
         #cluster_1.update_machine_archs(directory_machine_1.get_arch_list()[0], hhgen_ctrl)
         #cluster_2.update_machine_archs(hhcache_machine_2.get_arch_list()[0], hhgen_ctrl)
 
-        GenerateMurphi([cluster_1, cluster_2], 'HH_DeadlockFreedom', None, eq_checks=eq_checks, cc_num=cc_num)
+        GenerateMurphi([cluster_1, cluster_2], 'HH_DeadlockFreedom', None, config={"eq_checks":eq_checks, "cc_num":cc_num})
 
         #GenerateMurphi([Cluster(tuple([cache_machine_2, cache_machine_2, cache_machine_2, directory_machine_2]), 'C1', False)], 'HH_DeadlockFreedom', None)
 
