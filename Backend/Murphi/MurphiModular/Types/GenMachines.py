@@ -93,12 +93,16 @@ class GenMachines(TemplateHandler, Debug):
                 elif config.use_mrecords:
                     type_def_str += MurphiTokens.k_vector + vector_def + ": record" + self.nl
                     config.mrecords_vector[vector_def] = set()
+                    archs = set([str(arch)])
                     for cluster in clusters:
-                        if arch in cluster.get_machine_architectures():
-                            for arch2 in cluster.get_machine_architectures():
-                                if arch != arch2:
-                                    config.mrecords_vector[vector_def].add(str(arch2))
-                                    type_def_str +=  self.tab + str(arch2) + ": array["+ MurphiTokens.k_obj_set + str(arch2) + "] of boolean" + self.end
+                        # if arch in cluster.get_machine_architectures():
+                        for arch2 in cluster.get_machine_architectures():
+                            if str(arch2) in archs:
+                                continue
+                            archs.add(str(arch2))
+                            # if arch != arch2:
+                            config.mrecords_vector[vector_def].add(str(arch2))
+                            type_def_str +=  self.tab + str(arch2) + ": array["+ MurphiTokens.k_obj_set + str(arch2) + "] of boolean" + self.end
                     type_def_str += "end" + self.end
                     type_def_str += self.arch_type_dict[arch].vector_defs[vector_def].split("\n",1)[1]
                 else:
@@ -122,7 +126,8 @@ class GenMachines(TemplateHandler, Debug):
             atomic_event_str = AtomicEvent.atomic_event_lock_var + ": " + MurphiTokens.k_address + self.end
 
         # Generate the header
-        return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_event_queue_def),
+        template = MurphiTemplates.f_event_queue_def_noms if config.substitute_multisets else MurphiTemplates.f_event_queue_def
+        return self._stringReplKeys(self._openTemplate(template),
                                     [MurphiTokens.k_event,
                                      str(arch),
                                      MurphiTokens.k_entry,

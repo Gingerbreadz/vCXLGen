@@ -145,7 +145,7 @@ class GenAccessRuleSet(TemplateHandler, Debug):
                                         lock_func_str
                                     ]) + self.nl
         
-        if config.eq_effective_mi_downgrade and ("L2" in str(arch) or "abstraction" in str(arch)) and "load" in str(transitions[0].guard):
+        if ((config.eq_self_mi_downgrade and "abstraction" in str(arch)) or ("L2" in str(arch) and config.eq_other_mi_downgrade)) and "load" in str(transitions[0].guard):
             ret = "-- Impossible due to effective MI downgrade \n--" + ret.replace("\n", "\n--")
 
         return ret

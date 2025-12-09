@@ -105,11 +105,12 @@ class RunHH(Debug):
         cluster_2 = Cluster(
             tuple([cache_machine_2, ]) + tuple([hhcache_machine, directory_machine_2]),
             'C2', False)
+        self.sys_list = {"C1": filename_1.split(".")[0], "C2": filename_2.split(".")[0]}
 
         #cluster_1.update_machine_archs(directory_machine_1.get_arch_list()[0], hhgen_ctrl)
         #cluster_2.update_machine_archs(hhcache_machine_2.get_arch_list()[0], hhgen_ctrl)
 
-        GenerateMurphi([cluster_1, cluster_2], 'HH_DeadlockFreedom', None, config={"eq_checks":eq_checks, "cc_num":cc_num})
+        GenerateMurphi([cluster_1, cluster_2], 'HH_DeadlockFreedom', None, config={"eq_checks":eq_checks, "cc_num":cc_num, "minimal":True, "sys_list": self.sys_list})
 
         #GenerateMurphi([Cluster(tuple([cache_machine_2, cache_machine_2, cache_machine_2, directory_machine_2]), 'C1', False)], 'HH_DeadlockFreedom', None)
 

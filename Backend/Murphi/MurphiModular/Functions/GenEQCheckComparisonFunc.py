@@ -90,17 +90,36 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
         if "dir" in config.eq_rhs:
             fn_inner = ""
             for ch in OptimizationHelper.supported_nets:
-                template = MurphiTemplates.f_eq_queue_no_msg_from
-                elem = "m_" + config.eq_rhs
-                if config.use_mrecords:
-                    template = MurphiTemplates.f_eq_mr_queue_no_msg_from
-                    elem = config.eq_rhs
-                fn_inner += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
-                                                            [config.eq_rhs.split("_")[0], ch, elem, "systemRHS" ]), 2)
+                if OptimizationHelper.has_net(ch, config):
+                    template = MurphiTemplates.f_eq_queue_no_msg_from
+                    elem = "m_" + config.eq_rhs
+                    if config.use_mrecords:
+                        template = MurphiTemplates.f_eq_mr_queue_no_msg_from
+                        elem = config.eq_rhs
+                    fn_inner += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
+                                                                [config.eq_rhs.split("_")[0], ch, elem, "systemRHS" ]), 2)
             functions += self.add_tabs(self._stringReplKeys(self._openTemplate(MurphiTemplates.f_eq_same_ob),
                                                           ["L1RHSDone", fn_inner]), 2) + self.nl
         
         functions += self.tab + "----" + __name__.replace('.','/') +  " : GlobalStateManagementFunctions" + self.nl
+        if "CXL" in config.sys_list["C2"] and "RCC" in config.sys_list["C1"] and "dir" in config.eq_rhs:
+            # TODO: is this correct?????
+            functions += """
+    <Not correct, fix please>
+    function restrictions(): boolean;
+    begin
+
+    for m: OBJSET_cacheL1RHS do
+    alias evt_entry: i_cacheL1RHS[m].evt do
+        if evt_entry.event_queue_index != 0 then
+        return false;
+        endif;
+    endalias;
+    endfor;
+
+    return true;
+    end;
+"""
         if not config.use_mrecords:
             template = MurphiTemplates.f_eq_global_state
             if config.eq_check_progress:
@@ -111,8 +130,15 @@ class GenEQCheckComparisonFunc(TemplateHandler, Debug):
             template = MurphiTemplates.f_eq_mr_global_state
             if config.eq_check_progress:
                 template = MurphiTemplates.f_eqp_mr_global_state
+            ob_fn = "sameOutputOB"
+            lhs_restr = "true"
+            if "CXL" in config.sys_list["C2"]:
+                ob_fn = "sameOB"
+                if "dir" in config.eq_lhs:
+                    assert config.eq_check_progress, "May be unsafe, not yet supported"
+                    lhs_restr = "!(fwd_LHS_network_used() | resp_LHS_network_used())"
             functions += self.add_tabs(self._stringReplKeys(self._openTemplate(template),
-                                                            ["& L1RHSDone()" if ("dir" in config.eq_rhs) else ""]), 2) + self.nl
+                                                            ["& L1RHSDone()" if ("dir" in config.eq_rhs) else "", ob_fn, lhs_restr]), 2) + self.nl
 
         if config.use_mrecords and config.eq_check and "cacheL1RHS" in machineTypes:
             functions += self.tab + "----" + __name__.replace('.','/') +  " : ActiveRHSFunction" + self.nl

@@ -60,9 +60,13 @@ class GenEventFunc(TemplateHandler, Debug):
             for arch in set([machine.arch for machine in machines]):
                 arch_set.add(arch)
 
+        archs = set()
         for arch in arch_set:
             for transition in arch.get_architecture_transitions():
                 if isinstance(transition.guard, Event) or isinstance(transition.guard, EventAck):
+                    if str(arch) in archs:
+                        continue
+                    archs.add(str(arch))
                     event_func_str.append(self.gen_evt_func(arch, config) + self.nl)
                     if config.atomic_events:
                         event_func_str.append(self.gen_evt_atomic_func(arch) + self.nl)
@@ -75,7 +79,8 @@ class GenEventFunc(TemplateHandler, Debug):
         murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(event_func_str), 1))
 
     def gen_evt_func(self, arch: FlatArchitecture, config: BaseConfig) -> str:
-        return self._stringReplKeys(self._openTemplate(MurphiTemplates.f_event_func_general),
+        template = MurphiTemplates.f_event_func_general_noms if config.substitute_multisets else MurphiTemplates.f_event_func_general
+        return self._stringReplKeys(self._openTemplate(template),
                                     [str(arch),
                                      MurphiTokens.k_event_label,
                                      MurphiTokens.k_obj_set,

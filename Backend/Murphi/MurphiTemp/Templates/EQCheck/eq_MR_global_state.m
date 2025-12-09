@@ -1,11 +1,13 @@
 # $0$ RHS restrictions
+# $1$ Same OB function 
+# $2$ can switch out of LHS
 #
 function can_switch_out_of(state : SystemStates) : boolean;
 begin
   if state = systemLHS then
-    return true;
+    return $2$;
   elsif state = systemRHS then
-    return sameOutputOB() $0$;
+    return $1$() $0$;
   elsif state = systemLHSExt then
     return true;
   elsif state = systemRHSExt then
@@ -20,9 +22,9 @@ begin
   if state = systemLHS then
     return true;
   elsif state = systemRHS then
-    return !sameOutputOB();
+    return !$1$();
   elsif state = systemLHSExt then
-    return sameOutputOB();
+    return $1$();
   elsif state = systemRHSExt then
     error "unreachable system state";
   else
@@ -38,7 +40,7 @@ begin
     elsif state = systemRHS then
         return !(can_switch_to(systemLHS) & can_switch_out_of(state)) & can_RHS_replicate_OB();
     elsif state = systemLHSExt then
-        return sameOutputOB();
+        return $1$();
     elsif state = systemRHSExt then
         error "unreachable system state";
     else

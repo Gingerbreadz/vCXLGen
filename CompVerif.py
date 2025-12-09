@@ -10,21 +10,29 @@ from Protocols.HieraHeteroGen.Ordered.MESIxMSI_HH import MESIxMSI_HH
 from Protocols.HieraHeteroGen.Ordered.MESIxMESI_HH import MESIxMESI_HH
 from Protocols.HieraHeteroGen.Ordered.MESIxMSIxMOESI import MESIxMSIxMOESI
 from Protocols.HieraHeteroGen.Ordered.RCCOxMSI_HH import RCCOxMSI_HH
+from Protocols.HieraHeteroGen.Ordered.RCCxCXL import RCCxCXL_HH
 
 # TODO: REENABLE
 # MESIxMESI_HH(eq_checks=True)
 # MESIxMESIxMESI()
 
-# MESIxMESI_HH(cc_num=3, eq_checks=True)
+MESIxMESI_HH(cc_num=3, eq_checks=True)
 # MESIxMESIxMESI(cc_num=3)
 
-MESIxCXL_HH(eq_checks=True)
+# RCCxCXL_HH(eq_checks=True)
 # MESIxCXL_HH(eq_checks=True)
+
+# RCCxCXL_HH(cc_num=3, eq_checks=True)
+# MESIxCXL_HH(cc_num=3, eq_checks=True)
+
+# MESIxCXLxRCC()
+# MESIxCXLxRCC(cc_num=3)
+
+# MESIxCXLxMSI()
+# MESIxCXLxMSI(cc_num=3)
 
 # MESIxCXLxMESI()
 # MESIxCXLxMOESI()
-# MESIxCXLxRCC()
-# MESIxCXLxRCC(cc_num=3)
 # MESIxMESIxMSI()
 # MESIxCXLxMESI()
 # MESIxMSIxMOESI()

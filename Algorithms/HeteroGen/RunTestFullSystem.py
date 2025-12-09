@@ -76,7 +76,7 @@ class RunFullSystem(Debug):
         protocol_2 = open(filename_2).read()
         protocol_3 = open(filename_3).read()
         self.sys_name = filename_1.split(".")[0] + "x" + filename_2.split(".")[0] + "x" + filename_3.split(".")[0]
-        make_dir("FullSystem_NoCE")
+        make_dir("FullSystem")
         make_dir(self.sys_name)
 
         # Generate level based on given protocol and check input SSP
@@ -122,8 +122,8 @@ class RunFullSystem(Debug):
         #cluster_1.update_machine_archs(directory_machine_1.get_arch_list()[0], hhgen_ctrl_a)
         #cluster_2.update_machine_archs(hhcache_machine_2.get_arch_list()[0], hhgen_ctrl_a)
 
-        if not litmus: # TODO: REENABLE, only disabled currently for quicker generation
-            GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, config={"eq_checks":eq_checks, "full_sys":True, "cc_num":cc_num, "sys_list": self.sys_list})
+        # if not litmus: 
+        GenerateMurphi([cluster_1A, cluster_2, cluster_1B], f'FullSystem_{cc_num}CC', None, config={"eq_checks":eq_checks, "full_sys":True, "cc_num":cc_num, "sys_list": self.sys_list})
 
         #RunMurphiCheck([cluster_1], sys_name, None, 4000, 'DeadlockFreedom')
         #RunSLICCModular(cluster_1, sys_name)
@@ -132,12 +132,11 @@ class RunFullSystem(Debug):
 
         cache_thread_dict: Dict[Machine, List[LitmusTest]] = {cache_machine_1A: litmus_test_list_1,
                                                              cache_machine_1B: litmus_test_list_2}
-
-        if litmus_test_list_1 and litmus_test_list_2:
-           self.run_full_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA, hhcache_machineB)
-        #    self.run_comp_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA, hhcache_machineB)
-        #    self.run_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA)
-
+        
+        # TODO: REENABLE, only disabled currently for quicker generation
+        # if litmus_test_list_1 and litmus_test_list_2:
+        #    self.run_full_litmus_test(self.sys_name, cache_thread_dict, directory_machine_2, hhcache_machineA, hhcache_machineB)
+        
     def run_full_litmus_test(self, file_name: str, cache_thread_dict: Dict[Machine, List[LitmusTest]],
                         directory_machine: Machine, hhcache_machineA: Machine, hhcache_machineB: Machine):
         total_tests_generated = 0

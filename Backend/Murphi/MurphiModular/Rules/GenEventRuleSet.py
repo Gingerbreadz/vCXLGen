@@ -60,13 +60,37 @@ class GenEventRuleSet(TemplateHandler, Debug):
                 if not ruleset_str:
                     continue
                 ruleset_str = self.rule_set_body(arch, ruleset_str) + self.nl
+                if config.eq_check:
+                    ruleset_str = self.modify_for_eq_check(arch, ruleset_str, config)
+                        
                 ruleset_str_list.append(ruleset_str)
 
                 if config.atomic_events:
-                    atomic_ruleset_str = self.gen_event_atomic_rules_str(arch)
-                    ruleset_str_list.append(self.rule_set_body(arch, atomic_ruleset_str) + self.nl)
+                    atomic_ruleset_str = self.rule_set_body(arch, self.gen_event_atomic_rules_str(arch))
+                    if config.eq_check:
+                        atomic_ruleset_str = self.modify_for_eq_check(arch, atomic_ruleset_str, config)
+                    ruleset_str_list.append(atomic_ruleset_str + self.nl)
 
-            murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(ruleset_str_list), 1))
+        murphi_str.append("----" + __name__.replace('.','/') + self.nl + self.add_tabs("".join(ruleset_str_list), 1))
+
+    def modify_for_eq_check(self, arch, ruleset_str: str, config: BaseConfig) -> str:
+        if "LHS" in str(arch):
+            ruleset_str = ruleset_str.replace("network_ready", "network_LHS_ready")
+            ruleset_str = ruleset_str.replace("cbe.State", "continue_run(systemLHS, g_system_state) & cbe.State")
+        else:
+            ruleset_str = ruleset_str.replace("network_ready", "network_RHS_ready")
+            ruleset_str = ruleset_str.replace("cbe.State", "continue_run(systemRHS, g_system_state) & cbe.State")
+            aux_checks_str = ""
+            # if "cacheL1RHS" in str(arch):
+            #     if not config.use_mrecords:
+            #         aux_checks_str += "& (to_m_" + str(arch) + "(m) = m_" + str(arch) + "_0"
+            #     else:
+            #         aux_checks_str += "& (active_" + str(arch) + "(m, adr)"
+            #     if config.eq_check_progress:
+            #         aux_checks_str += " | g_progress_tracking"    
+            #     aux_checks_str += ") "
+            ruleset_str = ruleset_str.replace("g_system_state)", "g_system_state)" + aux_checks_str)
+        return ruleset_str
 
     def gen_event_rules_str(self, arch: FlatArchitecture) -> str:
         event_rules_str = ""

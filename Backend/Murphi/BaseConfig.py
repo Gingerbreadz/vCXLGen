@@ -102,7 +102,8 @@ class BaseConfig(Debug):
     eq_rhs = ""
 
     eq_check_progress = False
-    eq_effective_mi_downgrade = False
+    eq_self_mi_downgrade = False
+    eq_other_mi_downgrade = False
 
     # Configurations for individual machines
     machine_configs : List[MachineConfig] = []
@@ -117,7 +118,7 @@ class BaseConfig(Debug):
     disable_eviction_for = None
 
     # Name of the generated setup
-    sys_list = []
+    sys_list = {}
 
     def __init__(self,  clusters: List[Cluster], litmus_test: Union[LitmusTest, None] = None, config = {}, machine_configs: List[MachineConfig] = []):
         Debug.__init__(self)
@@ -159,8 +160,10 @@ class BaseConfig(Debug):
             self.substitute_multisets = config["substitute_multisets"]
         if "remove_unused_channels" in config:
             self.remove_unused_channels = config["remove_unused_channels"]
-        if "eq_effective_mi_downgrade" in config:
-            self.eq_effective_mi_downgrade = config["eq_effective_mi_downgrade"]
+        if "eq_self_mi_downgrade" in config:
+            self.eq_self_mi_downgrade = config["eq_self_mi_downgrade"]
+        if "eq_other_mi_downgrade" in config:
+            self.eq_other_mi_downgrade = config["eq_other_mi_downgrade"]
         if "access_based_liveness" in config:
             self.access_based_liveness = config["access_based_liveness"]
         if "minimize_queue_size" in config:
@@ -254,7 +257,6 @@ class BaseConfig(Debug):
             "eq_lhs": "directoryL1LHS_0",
             "eq_rhs": "cacheL2RHS_1",
             "eq_check_progress": True,
-            "eq_effective_mi_downgrade": True
         }
     
     def EqCheckDefaultInverse() -> dict:
@@ -263,7 +265,6 @@ class BaseConfig(Debug):
             "eq_lhs": "cacheL2LHS_1",
             "eq_rhs": "directoryL1RHS_0",
             "eq_check_progress": True,
-            "eq_effective_mi_downgrade": True
         }
 
     ## Returns a dictionary that can be passes as the config to the BaseConfig constructor to setup the default equivalence check configuration
@@ -275,7 +276,6 @@ class BaseConfig(Debug):
             "eq_lhs": "directoryL1LHS",
             "eq_rhs": "abstractionRHS",
             "eq_check_progress": True,
-            "eq_effective_mi_downgrade": True
         }
     
     def EqCheckMRDefaultInverse() -> dict:
@@ -285,6 +285,5 @@ class BaseConfig(Debug):
             "eq_check": True,
             "eq_lhs": "abstractionLHS",
             "eq_rhs": "directoryL1RHS",
-            "eq_check_progress": True,
-            "eq_effective_mi_downgrade": True
+            "eq_check_progress": True
         }

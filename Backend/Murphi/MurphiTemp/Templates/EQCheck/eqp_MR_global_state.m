@@ -1,12 +1,14 @@
 # $0$ RHS restrictions
+# $1$ Same OB function 
+# $2$ can switch out of LHS
 #
 function can_switch_out_of(state : SystemStates) : boolean;
 begin
   if state = systemLHS then
-    return true;
+    return $2$;
   elsif state = systemRHS then
     if !g_progress_tracking then
-      return sameOutputOB() $0$;
+      return $1$() $0$;
     else
       return true; -- we can always switch back
     endif;
@@ -24,9 +26,9 @@ begin
   if state = systemLHS then
     return true;
   elsif state = systemRHS then
-    return !sameOutputOB();
+    return !$1$();
   elsif state = systemLHSExt then
-    return sameOutputOB() & !g_progress_tracking;
+    return $1$() & !g_progress_tracking;
   elsif state = systemRHSExt then
     error "unreachable system state";
   else
@@ -43,10 +45,10 @@ begin
         if !g_progress_tracking then
           return !(can_switch_to(systemLHS) & can_switch_out_of(state)) & can_RHS_replicate_OB();
         else
-          return sameOutputOB(); -- as long as no OB was caused continue
+          return $1$(); -- as long as no OB was caused continue
         endif
     elsif state = systemLHSExt then
-        return sameOutputOB();
+        return $1$();
     elsif state = systemRHSExt then
         error "unreachable system state";
     else

@@ -6,6 +6,12 @@ class OptimizationHelper:
 
     supported_nets = ["req", "req2", "resp", "fwd", "rwd", "birsp", "bisnp", "drs", "ndr"]
 
+    def has_net(net: str, config: BaseConfig):
+        if not any("CXL" in cl for cl in config.sys_list):
+            if net in ["req2", "rwd", "birsp", "bisnp", "drs", "ndr"]:
+                return False
+        return True
+
     def has_arch_net(arch: str, net: str, config: BaseConfig):
         if not config.remove_unused_channels:
             return True
@@ -22,11 +28,15 @@ class OptimizationHelper:
         for cl in config.sys_list:
             if cl in arch or cl.replace("C", "L") in arch:
                 if config.sys_list[cl] in ["MSI", "MESI", "MOESI", "RCCHetero"]:
-                    if "cache" in arch or "L2" in arch:
+                    if "cache" in arch or "L2" in arch or "abstraction" in arch:
                         if net in ["req2", "rwd", "birsp", "bisnp", "drs", "ndr"]:
                             return False
+                if "CXL" in config.sys_list[cl]:
+                    if net in ["req", "resp", "fwd"]:
+                        return False
+                
 
-        return True
+        return OptimizationHelper.has_net(net, config)
     
     def can_arch_recieve(arch: str, net: str, cluster: str, config: BaseConfig):
 
@@ -42,10 +52,15 @@ class OptimizationHelper:
             return False
         if "dir" in arch and "L1" in arch and net == "req" and "2" in cluster:
             return False
-        
+            
+        cluster = cluster.replace("_RHS", "")
+        cluster = cluster.replace("_LHS", "")
         if cluster in config.sys_list:
             if config.sys_list[cluster] in ["MSI", "MESI", "MOESI", "RCCHetero"]:
                 if net in ["req2", "rwd", "birsp", "bisnp", "drs", "ndr"]:
                     return False
+            if "CXL" in config.sys_list[cluster]:
+                if net in ["req", "resp", "fwd"]:
+                    return False
         
-        return True
+        return OptimizationHelper.has_net(net, config)

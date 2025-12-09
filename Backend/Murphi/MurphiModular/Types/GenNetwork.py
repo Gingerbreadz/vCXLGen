@@ -69,9 +69,10 @@ class GenNetwork(TemplateBase, Debug):
             objstr += (MurphiTokens.k_net + MurphiTokens.k_unordered + ": array[" + MurphiTokens.k_machines
                     + "] of multiset[" + MurphiTokens.c_unordered_const + "] of " + MurphiTokens.k_message + self.end)
         else:
-            objstr += (MurphiTokens.k_net + MurphiTokens.k_unordered + ": array[" + MurphiTokens.k_machines
-                    + "] of multiset[" + MurphiTokens.c_unordered_const + "] of " + MurphiTokens.k_message + self.end)
-            
+            if not config.substitute_multisets:
+                objstr += (MurphiTokens.k_net + MurphiTokens.k_unordered + ": array[" + MurphiTokens.k_machines
+                        + "] of multiset[" + MurphiTokens.c_unordered_const + "] of " + MurphiTokens.k_message + self.end)
+                
             archs = set()
             for cluster in clusters:
                 nets = set()
@@ -100,7 +101,7 @@ class GenNetwork(TemplateBase, Debug):
                                 net_max = "("
 
                                 for c in clusters:
-                                    if arch in c.get_machine_architectures():
+                                    if str(arch) in [str(a) for a in c.get_machine_architectures()]:
                                         if OptimizationHelper.can_arch_recieve(str(arch), str(net), str(c), config):
                                             net_max += str(c) + "_NET_MAX+"
                                 net_max = net_max.removesuffix("+") + ")"

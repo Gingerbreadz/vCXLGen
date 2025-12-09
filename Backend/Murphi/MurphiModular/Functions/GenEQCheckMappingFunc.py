@@ -88,6 +88,8 @@ class GenEQCheckMappingFunc(TemplateHandler, Debug):
         GenMessage(msg_record, clusters, config)
         if "L2" not in ''.join(msg_record):
             msg_comp = msg_comp.replace("L2", "L1")
+        if "acksExpectedL1" not in ''.join(msg_record):
+            msg_comp = msg_comp.replace("acksExpectedL1", "mtype")
         functions += msg_comp
 
         functions += self.tab + "----" + __name__.replace('.','/') +  " : BackupFunctions" + self.nl

@@ -200,5 +200,7 @@ class MurphiTemplates:
     ## Events
     f_event_queue_def = "Event/EventQueueDef.m"
     f_event_func_general = "Event/GeneralEvent.m"
+    f_event_queue_def_noms = "Event/EventQueueDef_noms.m"
+    f_event_func_general_noms = "Event/GeneralEvent_noms.m"
     f_reset_func = "ResetFunc/ResetFunc.m"
     f_scalar_mapping_reset = "ResetFunc/scalar_mapping_reset.m"
