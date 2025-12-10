@@ -12,16 +12,16 @@ from Protocols.HieraHeteroGen.Ordered.RCCOxMSI_HH import RCCOxMSI_HH
 
 # TODO: REENABLE
 # MESIxMESI_HH(eq_checks=True)
-# MESIxMESIxMESI()
+MESIxMESIxMESI()
 
 # MESIxMESI_HH(cc_num=3, eq_checks=True)
 # MESIxMESIxMESI(cc_num=3)
 
 # MESIxCXL_HH(eq_checks=True)
 
-# MESIxCXLxMESI()
-# MESIxCXLxMOESI()
-# MESIxCXLxRCC()
+MESIxCXLxMESI()
+MESIxCXLxMOESI()
+MESIxCXLxRCC()
 RCCxCXLxRCC()
 # MESIxCXLxRCC(cc_num=3)
 # MESIxMSIxMOESI()

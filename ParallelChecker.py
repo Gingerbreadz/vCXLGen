@@ -412,9 +412,9 @@ def_memory = 32000
 max_memory = 1000000
 
 # Record the default path to dump result file into
-def_path = os.getcwd()
+def_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 
-litmus_test_files_path = def_path + '/Protocols/MOESI_Directory/RF_Dir/ord_net/HeteroGen'
+litmus_test_files_path = os.path.join(def_path, 'Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/')
 
 # Runs smallest litmus tests first
 smallest_first = True

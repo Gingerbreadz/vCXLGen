@@ -1,0 +1,22 @@
+Executed Number of Litmus Tests 16
+SUCCESS: The following tests have passed
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/CoRR1/cacheL1B_cacheL1A/Murphi/CoRR1SC0__p_SC1__p/MU_MESIxMESIxMESI_CoRR1SC0__p_SC1__p : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/CoRR1/cacheL1B_cacheL1A/Murphi/CoRR1SC0__px_SC1__px/MU_MESIxMESIxMESI_CoRR1SC0__px_SC1__px : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/CoRR1/cacheL1B_cacheL1B/Murphi/CoRR1SC0__p_SC1__p/MU_MESIxMESIxMESI_CoRR1SC0__p_SC1__p : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/CoRR1/cacheL1B_cacheL1B/Murphi/CoRR1SC0__px_SC1__px/MU_MESIxMESIxMESI_CoRR1SC0__px_SC1__px : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/CoRR1/cacheL1A_cacheL1B/Murphi/CoRR1SC0__px_SC1__px/MU_MESIxMESIxMESI_CoRR1SC0__px_SC1__px : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/CoRR1/cacheL1A_cacheL1B/Murphi/CoRR1SC0__p_SC1__p/MU_MESIxMESIxMESI_CoRR1SC0__p_SC1__p : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/CoRR1/cacheL1A_cacheL1A/Murphi/CoRR1SC0__p_SC1__p/MU_MESIxMESIxMESI_CoRR1SC0__p_SC1__p : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/CoRR1/cacheL1A_cacheL1A/Murphi/CoRR1SC0__px_SC1__px/MU_MESIxMESIxMESI_CoRR1SC0__px_SC1__px : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/2+2W/cacheL1A_cacheL1B/Murphi/2+2WSC0__pyx_SC1__pyx/MU_MESIxMESIxMESI_2+2WSC0__pyx_SC1__pyx : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/2+2W/cacheL1A_cacheL1B/Murphi/2+2WSC0__p_SC1__p/MU_MESIxMESIxMESI_2+2WSC0__p_SC1__p : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/2+2W/cacheL1A_cacheL1A/Murphi/2+2WSC0__pyx_SC1__pyx/MU_MESIxMESIxMESI_2+2WSC0__pyx_SC1__pyx : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/2+2W/cacheL1A_cacheL1A/Murphi/2+2WSC0__p_SC1__p/MU_MESIxMESIxMESI_2+2WSC0__p_SC1__p : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/2+2W/cacheL1B_cacheL1A/Murphi/2+2WSC0__p_SC1__p/MU_MESIxMESIxMESI_2+2WSC0__p_SC1__p : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/2+2W/cacheL1B_cacheL1A/Murphi/2+2WSC0__pyx_SC1__pyx/MU_MESIxMESIxMESI_2+2WSC0__pyx_SC1__pyx : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/2+2W/cacheL1B_cacheL1B/Murphi/2+2WSC0__p_SC1__p/MU_MESIxMESIxMESI_2+2WSC0__p_SC1__p : Pass
+/scratch/julian/cxl/CXLGen/Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/MESIxMESIxMESI/Litmus_Tests/2+2W/cacheL1B_cacheL1B/Murphi/2+2WSC0__pyx_SC1__pyx/MU_MESIxMESIxMESI_2+2WSC0__pyx_SC1__pyx : Pass
+
+Number of passed tests: 16
+Waiting not scheduled Tests: 0
+SUCCESS: No Errors

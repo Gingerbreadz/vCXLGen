@@ -245,11 +245,11 @@ class MurphiWorkerThread(threading.Thread):
         return True
 
 
-def_path = os.getcwd()
+def_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 
 # PATH TO THE MURPHI VARIABLE
-murphi_compiler_path = '/home/julian/cxl/murphi/'
-litmus_test_files_path = def_path + 'Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem'
+murphi_compiler_path = os.path.join(def_path, '../tools/murphi_src/')
+litmus_test_files_path = os.path.join(def_path, 'Protocols/MOESI_Directory/RF_Dir/ord_net/FullSystem_NoCE/')
 
 # Find all litmus test murphi code files
 litmus_thread_service_list: List[str] = []
@@ -275,4 +275,3 @@ for t in thread_list:
 progress_thread.cancel()
 
 print_result()
-

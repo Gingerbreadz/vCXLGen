@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-  pythonPackages = pkgs.python311Packages;
+  pythonPackages = pkgs.python3Packages;
 in pkgs.mkShell rec {
   name = "impurePythonEnv";
   venvDir = "./.venv";
@@ -18,13 +18,18 @@ in pkgs.mkShell rec {
     # add them to PYTHONPATH and thus make them accessible from within the venv.
     pythonPackages.numpy
     pythonPackages.requests
-    pythonPackages.matplotlib
 
-    pythonPackages.jupyter
+    # antlr3 build deps
+    pythonPackages.setuptools
+    pythonPackages.distutils
 
-    # In this particular example, in order to compile any binary extensions they may
-    # require, the Python modules listed in the hypothetical requirements.txt need
-    # the following packages to be installed locally:
+    # HHGen runtime deps
+    pythonPackages.graphviz
+    pythonPackages.psutil
+    pythonPackages.colorama
+    pythonPackages.tabulate
+    pythonPackages.networkx
+
     taglib
     openssl
     git
@@ -33,12 +38,19 @@ in pkgs.mkShell rec {
     libzip
     zlib
     graphviz
+    # In this particular example, in order to compile any binary extensions they may
+    # require, the Python modules listed in the hypothetical requirements.txt need
+    # the following packages to be installed locally:
   ];
 
   # Run this command, only after creating the virtual environment
   postVenvCreation = ''
     unset SOURCE_DATE_EPOCH
     pip install -r requirements.txt
+    git clone https://github.com/Errare-humanum-est/antlr3 antlr3
+    cd antlr3/runtime/Python3
+    python3 setup.py install
+    cd ../../..
   '';
 
   # Now we can execute any commands within the virtual environment.
