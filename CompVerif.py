@@ -17,16 +17,16 @@ from Protocols.HieraHeteroGen.Ordered.RCCxCXL import RCCxCXL_HH
 # MESIxMESIxMESI()
 
 MESIxMESI_HH(cc_num=3, eq_checks=True)
-# MESIxMESIxMESI(cc_num=3)
+MESIxMESIxMESI(cc_num=3)
 
-# RCCxCXL_HH(eq_checks=True)
-# MESIxCXL_HH(eq_checks=True)
+RCCxCXL_HH(eq_checks=True)
+MESIxCXL_HH(eq_checks=True)
 
-# RCCxCXL_HH(cc_num=3, eq_checks=True)
-# MESIxCXL_HH(cc_num=3, eq_checks=True)
+RCCxCXL_HH(cc_num=3, eq_checks=True)
+MESIxCXL_HH(cc_num=3, eq_checks=True)
 
-# MESIxCXLxRCC()
-# MESIxCXLxRCC(cc_num=3)
+MESIxCXLxRCC()
+MESIxCXLxRCC(cc_num=3)
 
 # MESIxCXLxMSI()
 # MESIxCXLxMSI(cc_num=3)

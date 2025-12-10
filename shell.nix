@@ -30,6 +30,14 @@ in pkgs.mkShell rec {
     pythonPackages.tabulate
     pythonPackages.networkx
 
+    taglib
+    openssl
+    git
+    libxml2
+    libxslt
+    libzip
+    zlib
+    graphviz
     # In this particular example, in order to compile any binary extensions they may
     # require, the Python modules listed in the hypothetical requirements.txt need
     # the following packages to be installed locally:
@@ -39,6 +47,10 @@ in pkgs.mkShell rec {
   postVenvCreation = ''
     unset SOURCE_DATE_EPOCH
     pip install -r requirements.txt
+    git clone https://github.com/Errare-humanum-est/antlr3 antlr3
+    cd antlr3/runtime/Python3
+    python3 setup.py install
+    cd ../../..
   '';
 
   # Now we can execute any commands within the virtual environment.
