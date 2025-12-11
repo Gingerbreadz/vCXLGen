@@ -133,7 +133,8 @@ def print_result():
     if not failed_test_dict and len(litmus_thread_service_list) == 0:
         result_str += "SUCCESS: No Errors" + '\n'
 
-    MurphiWorkerThread.write_file(def_path, 'TestScripts/Test_Result.txt', result_str)
+    result_file_path = sys.argv[2] if len(sys.argv) > 2 else 'TestScripts/Test_Result.txt'
+    MurphiWorkerThread.write_file(def_path, result_file_path, result_str)
 
     if len(litmus_thread_service_list) == 0:
         print(result_str)
