@@ -16,7 +16,9 @@ def count_exe_files(path: str) -> int:
 
 def eval_model(genfile: str, proto: str, target_count: int = 216):
         litmus_path = os.path.join(
-            "Protocols", "MOESI_Directory", "RF_Dir", "ord_net", "FullSystem_NoCE", proto, "Litmus_Tests"
+            "Protocols", "MOESI_Directory", "RF_Dir", "ord_net", "FullSystem_NoCE", 
+            proto.replace("RCC", "RCCHetero").replace("CXL", "CXL2"),
+            "Litmus_Tests"
         )
         out_file = os.path.join("..", "output", "litmus", f"{proto}.txt")
 
@@ -38,9 +40,9 @@ def eval_model(genfile: str, proto: str, target_count: int = 216):
 if __name__ == "__main__":
     tests = [
         ("GenMESIxMESIxMESI.py", "MESIxMESIxMESI"),
-        ("GenMESIxCXLxMESI.py", "MESIxCXL2xMESI"),
-        ("GenMESIxCXLxRCC.py", "MESIxCXL2xRCC"),
-        ("GenRCCxCXLxRCC.py", "RCCxCXL2xRCC"),
+        ("GenMESIxCXLxMESI.py", "MESIxCXLxMESI"),
+        ("GenMESIxCXLxRCC.py", "MESIxCXLxRCC"),
+        ("GenRCCxCXLxRCC.py", "RCCxCXLxRCC"),
     ]
 
     args = sys.argv[1:]
