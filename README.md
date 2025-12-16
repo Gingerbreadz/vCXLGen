@@ -1,11 +1,6 @@
-# CXLGen
+# vCXLGen
 
-CXL Gen is a cache coherence bridge generator for CXL.mem
-
-## Hardware dependencies
-
-Any PC with at least 16GB of RAM suffices to run most tests and these will complete in a matter of minutes on an Intel Skylake or comparable CPU.
-However, a few deadlocks tests can require up to 1TB of RAM and hours of computation time.
+vCXLGen is a cache coherence bridge generator and verifier for CXL.mem
 
 ## Software Dependencies
 
@@ -19,44 +14,49 @@ However, a few deadlocks tests can require up to 1TB of RAM and hours of computa
   - psutil 5.8.0
   - tabulate 0.8.9
 - CMurphi 5.4.9.1
-- Efficiently Supporting Dynamic Task-Parallelism on Heterogeneous Cache-Coherent Systems by Wang et al.: https://zenodo.org/record/3910803
+
+## Quick setup
+
+Set up the complete environment with the `nix` package manager
+
+```
+nix develop
+```
 
 ## Antlr3 setup
 
-To install antlr3 first open to the antrl3 python3 directory. 
+To install antlr3, clone it, move to the antrl3 python3 directory, then run the install script.
 
 ```
-cd antlr3-master/runtime/Python3
-```
-
-Then run the install script provided in the directory.
-
-```
+git clone https://github.com/Errare-humanum-est/antlr3 antlr3
+cd antlr3/runtime/Python3
 sudo python3 setup.py install
 ```
 
 ## CMurphi setup
-To install CMuprhi run from the parent directory:
+
+To install CMuprhi, run from the parent directory:
 
 ```
-cd src && make
+git clone https://github.com/Errare-humanum-est/CMurphi.git CMuprhi
+cd CMurphi/src && make
 ```
 
 ## Datasets
 
-Stable state protocols, used as inputs by HeteroGen to generate the heterogeneous cache coherence protocol, are provided in the *Protocols/MOESI Directory/ord* net directory. A set of litmus tests to verify the correctness of the protocols is provided in the MurphiLitmusTests directory.
+Stable state protocols, used as inputs by vCXLGen to generate the bridged cache coherence protocol, are provided in the *Protocols/MOESI Directory/ord* net directory.
+A set of litmus tests to verify the correctness of the protocols is provided in the MurphiLitmusTests directory.
 
 ## Experiment workflow
 In the top level directory run:
 
 ```
-python3 HeteroGen.py
+python3 eval.py       # Generate and run the litmus tests
 ```
 
-This will generate the heterogeneous coherence protocol state machines and litmus tests of protocols presented in the paper, which
-will be verified using the Murphi model checker. When HeteroGen is running warnings are displayed. These warnings can be ignored when using the provided protocols, but can help to debug problems when using new atomic protocols as inputs to HeteroGen.
-The generated files can be found in the directory: *Protocols/MOESI Directory/ord net/HeteroGen*
- 
+This will generate the bridged coherence protocol state machines and litmus tests of protocols presented in the paper, which
+will be verified using the Murphi model checker. Warnings can be ignored when using the provided protocols, but can help to debug problems when using new atomic protocols as inputs to vCXLGen.
+The generated files can be found in the directory: *Protocols/MOESI Directory/ord net/*
 
 ## Model Checker Setup
 
@@ -68,7 +68,8 @@ python3 ParallelCompiler.py
 
 ## Evaluation and Expected Results
 
-To verify the correctness of the generated heterogeneous cache coherence protocols, the Murphi model checker is used. Run the generated model checking executables:
+To verify the correctness of the generated bridged cache coherence protocols, the Murphi model checker is used.
+Run the generated model checking executables:
 
 ```
 python3 ParallelChecker.py
@@ -95,40 +96,3 @@ In the report file *'Test_Result.txt'* the litmus tests failing are listed. None
 - Deadlock: A deadlock in the protocol was found
 
 - Invariant: An invariant specified was violated
-
-
-## Generated protocols performance evaluation
-
-To evaluate the performance of the automatically generated MESI-RCCO HeteroGen protocol it is compared against the HCC-Denovo protocol. 
-
-To compare the performance of the protocols, please follow the instructions provided by the authors of the Efficiently Supporting Dynamic Task-Parallelism on Heterogeneous Cache-Coherent Systems publication to setup the reference system.
-
-Once the reference system has been setup, copy the provided **gem5_HeteroGen_protocols** directory into the docker container and run:
-
-```
-setup.sh
-```
-
-The setup script copies and modifies all the required files into the alloy-gem5 directory.
-Change directory to:
-
-```
-cd alloy-gem5
-```
-
-After running the setup script, run the benchmark execution scripts in the alloy-gem5 directory to produce the simulation results.
-
-- HCC-DeNovo protocol: ```run_DeNovo.sh```
-
-- HeteroGen MESI-RCCO protocol without any handshakes: ```run_RCCO_GEN_NO_HS.sh```
-
-- HeteroGen MESI-RCCO protocol with write handshakes: ```run_RCCO_GEN_WR_HS.sh```
-
-
-The simulation results are provided in the sim_res directory:
-
-```
-alloy-gem5/sim_res
-```
-
-Each result folder is labeled by the type of protocol (e.g. RCCO_GEN_NO_HS) that has been run followed by the name of the executed benchmark (e.g. BC).
